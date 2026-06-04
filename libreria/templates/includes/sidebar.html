@@ -1,0 +1,42 @@
+<div id="sidebar" class="sidebar bg-dark text-white shadow">
+    <div class="sidebar-header p-4 text-center border-bottom border-secondary mb-3">
+        <a href="{% url 'index' %}" class="text-decoration-none text-white d-flex align-items-center justify-content-center">
+            <i class="bi bi-stack fs-3 me-2 text-primary"></i>
+            <h4 class="mb-0 fw-bold tracking-tight">Sistema</h4>
+        </a>
+    </div>
+
+    <ul class="nav flex-column px-2">
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center px-3 py-2" href="{% url 'index' %}">
+                <span><i class="bi bi-house me-3 opacity-75"></i> Inicio</span>
+            </a>
+        </li>
+
+        <!-- CERRAR SESIÓN (Al final y bien separado) -->
+        <li class="nav-item mt-5 mb-4 px-2">
+            <a class="nav-link d-flex align-items-center text-danger border border-danger border-opacity-25 rounded-3 py-2 px-3 hover-logout" href="{% url 'logout' %}" style="background: rgba(220, 53, 69, 0.05);">
+                <i class="bi bi-box-arrow-right me-3"></i> <span class="fw-bold">Cerrar Sesión</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<style>
+    .sidebar { min-width: 260px; transition: 0.3s; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
+    .nav-link { border-radius: 8px !important; margin: 0 4px; transition: all 0.2s; color: #d1d5db; }
+    .nav-link:hover { background: rgba(255,255,255,0.08); color: #fff; transform: translateX(4px); }
+    
+    .hover-park:hover { background: linear-gradient(135deg, #1e9d62 0%, #198754 100%) !important; transform: scale(1.02) !important; color: white !important; box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3) !important; }
+    .hover-logout:hover { background: rgba(220, 53, 69, 0.15) !important; color: #dc3545 !important; border-color: #dc3545 !important; }
+
+    .dropdown-toggle::after { display: none; }
+    .arrow-icon { transition: transform 0.3s; opacity: 0.4; }
+    .nav-link.open .arrow-icon { transform: rotate(90deg); opacity: 1; }
+    .submenu { background: rgba(0,0,0,0.2); display: none; border-left: 2px solid rgba(255,255,255,0.05); }
+    .x-small { font-size: 0.75rem; }
+    
+    /* Scrollbar minimalista */
+    .sidebar::-webkit-scrollbar { width: 5px; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+</style>

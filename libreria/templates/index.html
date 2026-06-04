@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Inicio{% endblock %}
+{% block content %}
+<!-- FontAwesome para iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">Dashboard General</h2>
+        <span class="text-muted"><i class="far fa-calendar-alt me-1"></i> {% now "d F Y" %}</span>
+    </div>
+
+    <!-- Mensaje de bienvenida -->
+    <div class="text-center py-5">
+        <i class="bi bi-stack fs-1 text-muted mb-3 d-block"></i>
+        <h4 class="text-muted">Bienvenido al Nuevo Sistema</h4>
+        <p class="text-muted">La estructura base está lista para el desarrollo del nuevo sistema.</p>
+    </div>
+
+</div>
+{% endblock %}
