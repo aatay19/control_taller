@@ -131,4 +131,4 @@ def salida_crear(request, entrada_id=None):
             # Solo permitir entradas que no han sido entregadas
             form.fields['entrada'].queryset = Entrada.objects.filter(estado='en_taller')
             
-    return render(request, 'salidas/form.html', {'form': form, 'titulo': 'Registrar Salida'})
+    return render(request, 'salidas/form.html', {'form': form, 'titulo': 'Registrar Salida', 'entrada': entrada_inst})

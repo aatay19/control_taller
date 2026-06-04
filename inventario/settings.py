@@ -145,3 +145,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # 5. Soporte para proveedores con inventarios grandes (Evita TooManyFieldsSent)
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # Aumenta el límite de campos de 1000 a 10000
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # Aumenta el límite de memoria a 5MB (por si acaso)
+
+# 6. Archivos de media (subida de imágenes, talonarios, etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

@@ -16,10 +16,13 @@ urlpatterns = [
     path('entradas/crear/', views.entrada_crear, name='entrada_crear'),
     path('entradas/editar/<int:id>/', views.entrada_editar, name='entrada_editar'),
     path('entradas/eliminar/<int:id>/', views.entrada_eliminar, name='entrada_eliminar'),
+    path('entradas/<int:id>/detalle/', views.entrada_detalle_json, name='entrada_detalle'),
+    path('entradas/<int:id>/pdf/', views.entrada_pdf, name='entrada_pdf'),
     
     path('taller/', views.taller_lista, name='taller_lista'),
     
     path('salidas/', views.salidas_lista, name='salidas_lista'),
     path('salidas/crear/', views.salida_crear, name='salida_crear'),
     path('salidas/crear/<int:entrada_id>/', views.salida_crear, name='salida_crear_con_entrada'),
-]
+]
+

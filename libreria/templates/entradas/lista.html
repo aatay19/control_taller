@@ -35,8 +35,22 @@
                         <td>${{ entrada.total_general }}</td>
                         <td>${{ entrada.abono }}</td>
                         <td>
-                            <a href="{% url 'entrada_editar' entrada.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                            <a href="{% url 'entrada_eliminar' entrada.id %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                            <!-- Botón Ver -->
+                            <button type="button" class="btn btn-sm btn-outline-info btn-ver-detalle" data-entrada-id="{{ entrada.id }}" title="Ver detalle">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <!-- Botón Imprimir -->
+                            <button type="button" class="btn btn-sm btn-outline-success btn-imprimir" data-entrada-id="{{ entrada.id }}" title="Imprimir PDF">
+                                <i class="bi bi-printer"></i>
+                            </button>
+                            <!-- Botón Editar -->
+                            <a href="{% url 'entrada_editar' entrada.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <!-- Botón Eliminar -->
+                            <a href="{% url 'entrada_eliminar' entrada.id %}" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </a>
                         </td>
                     </tr>
                     {% empty %}
@@ -49,4 +63,236 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Ver Detalle -->
+<div class="modal fade" id="modalVerDetalle" tabindex="-1" aria-labelledby="modalVerDetalleLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="modalVerDetalleLabel"><i class="bi bi-eye me-2"></i>Detalle de Entrada</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="modalDetalleBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Imprimir (preguntar talonario) -->
+<div class="modal fade" id="modalImprimir" tabindex="-1" aria-labelledby="modalImprimirLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalImprimirLabel"><i class="bi bi-printer me-2"></i>Imprimir Entrada</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form id="formImprimirPdf" method="post" enctype="multipart/form-data" action="">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="mb-3">¿Desea adjuntar una imagen del talonario al PDF?</p>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="checkTalonario">
+                        <label class="form-check-label" for="checkTalonario">
+                            Sí, deseo adjuntar una imagen del talonario
+                        </label>
+                    </div>
+
+                    <div id="divImagenTalonario" class="d-none">
+                        <label for="inputImagenTalonario" class="form-label fw-semibold">Seleccionar imagen:</label>
+                        <input type="file" class="form-control" id="inputImagenTalonario" name="imagen_talonario" accept="image/*">
+                        <small class="text-muted">Formatos permitidos: JPG, PNG, BMP</small>
+                        
+                        <!-- Preview de la imagen -->
+                        <div id="previewContainer" class="mt-3 d-none text-center">
+                            <img id="previewImagen" src="" alt="Vista previa" class="img-thumbnail" style="max-height: 200px;">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-download me-1"></i>Generar PDF
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // ===== VER DETALLE =====
+    document.querySelectorAll('.btn-ver-detalle').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const entradaId = this.dataset.entradaId;
+            const modalBody = document.getElementById('modalDetalleBody');
+            
+            // Mostrar spinner
+            modalBody.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('modalVerDetalle'));
+            modal.show();
+
+            // Cargar datos
+            fetch(`/entradas/${entradaId}/detalle/`)
+                .then(response => response.json())
+                .then(data => {
+                    modalBody.innerHTML = `
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <small class="text-muted d-block">Entrada Nº</small>
+                                <span class="fw-bold fs-5">${data.id}</span>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <small class="text-muted d-block">Fecha de Ingreso</small>
+                                <span class="fw-bold">${data.fecha}</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <h6 class="text-primary mb-3"><i class="bi bi-person me-1"></i>Datos del Cliente</h6>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <small class="text-muted">Nombre</small>
+                                <p class="fw-semibold mb-1">${data.cliente_nombre}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Cédula</small>
+                                <p class="fw-semibold mb-1">${data.cliente_cedula}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <small class="text-muted">Teléfono</small>
+                                <p class="fw-semibold mb-1">${data.cliente_telefono}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Dirección</small>
+                                <p class="fw-semibold mb-1">${data.cliente_direccion}</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <h6 class="text-primary mb-3"><i class="bi bi-gear me-1"></i>Datos de la Máquina</h6>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <small class="text-muted">Modelo</small>
+                                <p class="fw-semibold mb-1">${data.modelo_maquina}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Estado</small>
+                                <p class="fw-semibold mb-1">${data.estado}</p>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">Observaciones / Repuestos</small>
+                            <p class="fw-semibold mb-1">${data.observaciones}</p>
+                        </div>
+                        <hr>
+                        <h6 class="text-primary mb-3"><i class="bi bi-currency-dollar me-1"></i>Información Financiera</h6>
+                        <div class="row text-center">
+                            <div class="col-md-3 mb-2">
+                                <small class="text-muted d-block">Monto Trabajo</small>
+                                <span class="fw-bold">$${data.monto_trabajo}</span>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <small class="text-muted d-block">Monto Repuestos</small>
+                                <span class="fw-bold">$${data.monto_repuestos}</span>
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <small class="text-muted d-block">Total</small>
+                                <span class="fw-bold text-primary">$${data.total}</span>
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <small class="text-muted d-block">Abono</small>
+                                <span class="fw-bold text-info">$${data.abono}</span>
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <small class="text-muted d-block">Pendiente</small>
+                                <span class="fw-bold text-danger fs-5">$${data.total_general}</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="text-muted small text-end">
+                            <i class="bi bi-person-badge me-1"></i>Registrado por: ${data.usuario}
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    modalBody.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Error al cargar los datos de la entrada.
+                        </div>`;
+                });
+        });
+    });
+
+    // ===== IMPRIMIR =====
+    const checkTalonario = document.getElementById('checkTalonario');
+    const divImagenTalonario = document.getElementById('divImagenTalonario');
+    const inputImagen = document.getElementById('inputImagenTalonario');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImagen = document.getElementById('previewImagen');
+
+    // Mostrar/ocultar campo de imagen
+    checkTalonario.addEventListener('change', function() {
+        if (this.checked) {
+            divImagenTalonario.classList.remove('d-none');
+        } else {
+            divImagenTalonario.classList.add('d-none');
+            inputImagen.value = '';
+            previewContainer.classList.add('d-none');
+        }
+    });
+
+    // Preview de imagen seleccionada
+    inputImagen.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImagen.src = e.target.result;
+                previewContainer.classList.remove('d-none');
+            };
+            reader.readAsDataURL(this.files[0]);
+        } else {
+            previewContainer.classList.add('d-none');
+        }
+    });
+
+    // Abrir modal de impresión
+    document.querySelectorAll('.btn-imprimir').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const entradaId = this.dataset.entradaId;
+            const form = document.getElementById('formImprimirPdf');
+            form.action = `/entradas/${entradaId}/pdf/`;
+            
+            // Reset del formulario
+            checkTalonario.checked = false;
+            divImagenTalonario.classList.add('d-none');
+            inputImagen.value = '';
+            previewContainer.classList.add('d-none');
+
+            const modal = new bootstrap.Modal(document.getElementById('modalImprimir'));
+            modal.show();
+        });
+    });
+
+});
+</script>
 {% endblock %}

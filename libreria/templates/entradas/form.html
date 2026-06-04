@@ -11,8 +11,78 @@
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
-                        {{ form.as_p }}
-                        
+
+                        <!-- Cliente -->
+                        <div class="mb-3">
+                            <label for="{{ form.cliente.id_for_label }}" class="form-label fw-semibold">Cliente</label>
+                            {{ form.cliente }}
+                            {% if form.cliente.errors %}
+                                <div class="text-danger small mt-1">{{ form.cliente.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Modelo de la Máquina -->
+                        <div class="mb-3">
+                            <label for="{{ form.modelo_maquina.id_for_label }}" class="form-label fw-semibold">Modelo de la Máquina</label>
+                            {{ form.modelo_maquina }}
+                            {% if form.modelo_maquina.errors %}
+                                <div class="text-danger small mt-1">{{ form.modelo_maquina.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Observaciones -->
+                        <div class="mb-3">
+                            <label for="{{ form.observaciones.id_for_label }}" class="form-label fw-semibold">Observaciones o Repuestos que lleva</label>
+                            {{ form.observaciones }}
+                            {% if form.observaciones.errors %}
+                                <div class="text-danger small mt-1">{{ form.observaciones.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="mb-3"><i class="bi bi-currency-dollar me-1"></i>Información Financiera</h5>
+
+                        <div class="row">
+                            <!-- Monto del Trabajo -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.monto_trabajo.id_for_label }}" class="form-label fw-semibold">Monto del Trabajo</label>
+                                {{ form.monto_trabajo }}
+                                {% if form.monto_trabajo.errors %}
+                                    <div class="text-danger small mt-1">{{ form.monto_trabajo.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Monto de los Repuestos -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.monto_repuestos.id_for_label }}" class="form-label fw-semibold">Monto de los Repuestos</label>
+                                {{ form.monto_repuestos }}
+                                {% if form.monto_repuestos.errors %}
+                                    <div class="text-danger small mt-1">{{ form.monto_repuestos.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Monto Total (calculado) -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Monto Total</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-success text-white fw-bold">$</span>
+                                <input type="text" id="monto_total_display" class="form-control form-control-lg fw-bold text-success bg-light" readonly value="0.00">
+                            </div>
+                            <small class="text-muted">Se calcula automáticamente: Monto del Trabajo + Monto de los Repuestos</small>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <!-- Abono -->
+                        <div class="mb-3">
+                            <label for="{{ form.abono.id_for_label }}" class="form-label fw-semibold">Abono</label>
+                            {{ form.abono }}
+                            {% if form.abono.errors %}
+                                <div class="text-danger small mt-1">{{ form.abono.errors }}</div>
+                            {% endif %}
+                        </div>
+
                         <div class="d-flex justify-content-end mt-4">
                             <a href="{% url 'entradas_lista' %}" class="btn btn-secondary me-2">Cancelar</a>
                             <button type="submit" class="btn btn-primary">Guardar</button>
@@ -23,4 +93,28 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const montoTrabajo = document.getElementById('id_monto_trabajo');
+        const montoRepuestos = document.getElementById('id_monto_repuestos');
+        const montoTotalDisplay = document.getElementById('monto_total_display');
+
+        function calcularTotal() {
+            const trabajo = parseFloat(montoTrabajo.value) || 0;
+            const repuestos = parseFloat(montoRepuestos.value) || 0;
+            const total = trabajo + repuestos;
+            montoTotalDisplay.value = total.toFixed(2);
+        }
+
+        // Calcular al cargar (para edición)
+        calcularTotal();
+
+        // Calcular en tiempo real
+        montoTrabajo.addEventListener('input', calcularTotal);
+        montoRepuestos.addEventListener('input', calcularTotal);
+    });
+</script>
 {% endblock %}

@@ -4,22 +4,115 @@
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
+
+            {% if entrada %}
+            <!-- Resumen Financiero Informativo -->
+            <div class="card shadow mb-4 border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Resumen Financiero del Servicio</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-3">
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Cliente</small>
+                            <span class="fw-bold fs-6">{{ entrada.cliente.nombre }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Máquina</small>
+                            <span class="fw-bold fs-6">{{ entrada.modelo_maquina }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Fecha de Ingreso</small>
+                            <span class="fw-bold fs-6">{{ entrada.fecha|date:"d/m/Y" }}</span>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-2">
+                            <small class="text-muted d-block">Monto del Trabajo</small>
+                            <span class="fw-bold fs-5">${{ entrada.monto_trabajo }}</span>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <small class="text-muted d-block">Monto de Repuestos</small>
+                            <span class="fw-bold fs-5">${{ entrada.monto_repuestos }}</span>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <small class="text-muted d-block">Monto Total del Servicio</small>
+                            <span class="fw-bold fs-5 text-primary">${{ entrada.total }}</span>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <small class="text-muted d-block">Abono Realizado</small>
+                            <span class="fw-bold fs-5 text-info">${{ entrada.abono }}</span>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="text-center">
+                        <small class="text-muted d-block">Saldo Pendiente por Pagar</small>
+                        <span class="fw-bold fs-3 text-danger">${{ entrada.total_general }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Formulario de Salida -->
             <div class="card shadow">
                 <div class="card-header bg-dark text-white">
-                    <h4 class="mb-0">{{ titulo }}</h4>
+                    <h4 class="mb-0"><i class="bi bi-box-arrow-right me-2"></i>{{ titulo }}</h4>
                 </div>
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
-                        {{ form.as_p }}
-                        
+
+                        <!-- Entrada asociada (oculta si viene pre-seleccionada) -->
+                        {% if entrada %}
+                            <div class="d-none">{{ form.entrada }}</div>
+                        {% else %}
+                            <div class="mb-3">
+                                <label for="{{ form.entrada.id_for_label }}" class="form-label fw-semibold">Entrada Asociada</label>
+                                {{ form.entrada }}
+                                {% if form.entrada.errors %}
+                                    <div class="text-danger small mt-1">{{ form.entrada.errors }}</div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Pago Final -->
+                        <div class="mb-3">
+                            <label for="{{ form.pago_final.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-cash-coin me-1"></i>Pago Final para Completar la Entrega
+                            </label>
+                            {{ form.pago_final }}
+                            {% if form.pago_final.errors %}
+                                <div class="text-danger small mt-1">{{ form.pago_final.errors }}</div>
+                            {% endif %}
+                            {% if entrada %}
+                                <small class="text-muted">Monto sugerido: ${{ entrada.total_general }} (saldo pendiente)</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Observaciones -->
+                        <div class="mb-3">
+                            <label for="{{ form.observaciones_entrega.id_for_label }}" class="form-label fw-semibold">Observaciones de Entrega</label>
+                            {{ form.observaciones_entrega }}
+                            {% if form.observaciones_entrega.errors %}
+                                <div class="text-danger small mt-1">{{ form.observaciones_entrega.errors }}</div>
+                            {% endif %}
+                        </div>
+
                         <div class="d-flex justify-content-end mt-4">
-                            <a href="{% url 'salidas_lista' %}" class="btn btn-secondary me-2">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Guardar</button>
+                            <a href="{% url 'taller_lista' %}" class="btn btn-secondary me-2">Cancelar</a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle me-1"></i>Confirmar Entrega
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
+
         </div>
     </div>
 </div>

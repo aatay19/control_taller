@@ -1,0 +1,159 @@
+import os
+import tempfile
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, JsonResponse
+from libreria.models import Entrada
+from fpdf import FPDF
+
+
+@login_required
+def entrada_detalle_json(request, id):
+    """Devuelve los datos de una entrada en formato JSON para el modal de detalle."""
+    entrada = get_object_or_404(Entrada, id=id)
+    data = {
+        'id': entrada.id,
+        'fecha': entrada.fecha.strftime('%d/%m/%Y %H:%M'),
+        'cliente_nombre': entrada.cliente.nombre,
+        'cliente_cedula': entrada.cliente.cedula,
+        'cliente_telefono': entrada.cliente.telefono or '-',
+        'cliente_direccion': entrada.cliente.direccion or '-',
+        'modelo_maquina': entrada.modelo_maquina,
+        'observaciones': entrada.observaciones,
+        'monto_trabajo': str(entrada.monto_trabajo),
+        'monto_repuestos': str(entrada.monto_repuestos),
+        'total': str(entrada.total),
+        'abono': str(entrada.abono),
+        'total_general': str(entrada.total_general),
+        'estado': entrada.get_estado_display(),
+        'usuario': entrada.usuario.username if entrada.usuario else '-',
+    }
+    return JsonResponse(data)
+
+
+class EntradaPDF(FPDF):
+    """PDF personalizado para la entrada del taller."""
+
+    def header(self):
+        self.set_font('Helvetica', 'B', 18)
+        self.set_text_color(31, 41, 55)
+        self.cell(0, 12, 'COMPROBANTE DE ENTRADA', ln=1, align='C')
+        self.set_font('Helvetica', '', 10)
+        self.set_text_color(107, 114, 128)
+        self.cell(0, 6, 'Taller de Costura - Control de Servicio', ln=1, align='C')
+        self.ln(4)
+        # Linea separadora
+        self.set_draw_color(209, 213, 219)
+        self.set_line_width(0.5)
+        self.line(10, self.get_y(), 200, self.get_y())
+        self.ln(6)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Helvetica', 'I', 8)
+        self.set_text_color(156, 163, 175)
+        self.cell(0, 10, f'Pagina {self.page_no()}', align='C')
+
+    def add_section_title(self, title):
+        self.set_font('Helvetica', 'B', 12)
+        self.set_text_color(59, 130, 246)
+        self.cell(0, 8, title, ln=1)
+        self.ln(2)
+
+    def add_field(self, label, value, bold_value=False):
+        self.set_font('Helvetica', 'B', 10)
+        self.set_text_color(55, 65, 81)
+        self.cell(60, 7, f'{label}:', ln=0)
+        self.set_font('Helvetica', 'B' if bold_value else '', 10)
+        self.set_text_color(17, 24, 39)
+        self.cell(0, 7, str(value), ln=1)
+
+
+@login_required
+def entrada_pdf(request, id):
+    """Genera PDF de la entrada, opcionalmente con imagen de talonario adjunta."""
+    entrada = get_object_or_404(Entrada, id=id)
+
+    pdf = EntradaPDF()
+    pdf.add_page()
+
+    # Numero de entrada y fecha
+    pdf.set_font('Helvetica', 'B', 11)
+    pdf.set_text_color(17, 24, 39)
+    pdf.cell(95, 7, f'Entrada No. {entrada.id}', ln=0)
+    pdf.set_font('Helvetica', '', 10)
+    pdf.set_text_color(107, 114, 128)
+    pdf.cell(0, 7, f'Fecha: {entrada.fecha.strftime("%d/%m/%Y %H:%M")}', align='R', ln=1)
+    pdf.ln(4)
+
+    # Datos del cliente
+    pdf.add_section_title('Datos del Cliente')
+    pdf.add_field('Nombre', entrada.cliente.nombre)
+    pdf.add_field('Cedula', entrada.cliente.cedula)
+    pdf.add_field('Telefono', entrada.cliente.telefono or '-')
+    pdf.add_field('Direccion', entrada.cliente.direccion or '-')
+    pdf.ln(4)
+
+    # Datos de la maquina
+    pdf.add_section_title('Datos de la Maquina')
+    pdf.add_field('Modelo', entrada.modelo_maquina)
+    pdf.add_field('Estado', entrada.get_estado_display())
+    pdf.ln(2)
+
+    # Observaciones
+    pdf.add_section_title('Observaciones / Repuestos')
+    pdf.set_font('Helvetica', '', 10)
+    pdf.set_text_color(55, 65, 81)
+    pdf.multi_cell(0, 6, entrada.observaciones or '-')
+    pdf.ln(4)
+
+    # Informacion financiera
+    pdf.add_section_title('Informacion Financiera')
+    pdf.add_field('Monto del Trabajo', f'$ {entrada.monto_trabajo}')
+    pdf.add_field('Monto de Repuestos', f'$ {entrada.monto_repuestos}')
+
+    # Linea separadora
+    pdf.set_draw_color(229, 231, 235)
+    pdf.line(10, pdf.get_y() + 2, 200, pdf.get_y() + 2)
+    pdf.ln(5)
+
+    pdf.add_field('MONTO TOTAL', f'$ {entrada.total}', bold_value=True)
+    pdf.add_field('Abono Realizado', f'$ {entrada.abono}')
+    pdf.add_field('SALDO PENDIENTE', f'$ {entrada.total_general}', bold_value=True)
+    pdf.ln(4)
+
+    # Registrado por
+    pdf.set_font('Helvetica', 'I', 9)
+    pdf.set_text_color(156, 163, 175)
+    usuario_nombre = entrada.usuario.username if entrada.usuario else '-'
+    pdf.cell(0, 7, f'Registrado por: {usuario_nombre}', ln=1)
+
+    # Imagen del talonario (si fue subida)
+    imagen = request.FILES.get('imagen_talonario')
+    if imagen:
+        # Guardar temporalmente la imagen
+        ext = os.path.splitext(imagen.name)[1] or '.jpg'
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+            for chunk in imagen.chunks():
+                tmp.write(chunk)
+            tmp_path = tmp.name
+
+        try:
+            pdf.add_page()
+            pdf.add_section_title('Imagen del Talonario')
+            pdf.ln(4)
+            # Insertar imagen centrada, ajustada al ancho de la pagina
+            pdf.image(tmp_path, x=25, w=160)
+        except Exception:
+            pdf.set_font('Helvetica', 'I', 10)
+            pdf.set_text_color(220, 38, 38)
+            pdf.cell(0, 10, 'Error: No se pudo insertar la imagen del talonario.', ln=1)
+        finally:
+            os.unlink(tmp_path)
+
+    # Generar respuesta
+    pdf_bytes = bytes(pdf.output())
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="entrada_{entrada.id}.pdf"'
+    return response
+
