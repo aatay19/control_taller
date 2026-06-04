@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Listado de Salidas (Entregas)</h2>
+        <a href="{% url 'salida_crear' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Nueva Salida</a>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Fecha de Entrega</th>
+                        <th>Cliente</th>
+                        <th>Máquina</th>
+                        <th>Total Trabajo</th>
+                        <th>Abono Previo</th>
+                        <th>Pago Final</th>
+                        <th>Observaciones</th>
+                        <th>Entregado por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for salida in salidas %}
+                    <tr>
+                        <td>{{ salida.fecha_entrega|date:"d/m/Y H:i" }}</td>
+                        <td>{{ salida.entrada.cliente.nombre }}</td>
+                        <td>{{ salida.entrada.modelo_maquina }}</td>
+                        <td>${{ salida.entrada.total }}</td>
+                        <td>${{ salida.entrada.abono }}</td>
+                        <td class="fw-bold text-success">${{ salida.pago_final }}</td>
+                        <td>{{ salida.observaciones_entrega|default:"-"|truncatewords:10 }}</td>
+                        <td>{{ salida.usuario.username|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">No hay salidas registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

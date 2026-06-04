@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Eliminar Entrada</h4>
+                </div>
+                <div class="card-body text-center">
+                    <p class="fs-5">¿Estás seguro que deseas eliminar la entrada de la máquina <strong>{{ entrada.modelo_maquina }}</strong> del cliente <strong>{{ entrada.cliente.nombre }}</strong>?</p>
+                    <p class="text-muted">Esta acción no se puede deshacer.</p>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <a href="{% url 'entradas_lista' %}" class="btn btn-secondary me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

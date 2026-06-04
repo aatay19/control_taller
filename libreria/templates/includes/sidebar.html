@@ -13,6 +13,30 @@
             </a>
         </li>
 
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center px-3 py-2" href="{% url 'clientes_lista' %}">
+                <span><i class="bi bi-people me-3 opacity-75"></i> Clientes</span>
+            </a>
+        </li>
+
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center px-3 py-2" href="{% url 'entradas_lista' %}">
+                <span><i class="bi bi-box-arrow-in-right me-3 opacity-75"></i> Entradas</span>
+            </a>
+        </li>
+
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center px-3 py-2" href="{% url 'taller_lista' %}">
+                <span><i class="bi bi-tools me-3 opacity-75"></i> Taller</span>
+            </a>
+        </li>
+
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center px-3 py-2" href="{% url 'salidas_lista' %}">
+                <span><i class="bi bi-box-arrow-right me-3 opacity-75"></i> Salidas</span>
+            </a>
+        </li>
+
         <!-- CERRAR SESIÓN (Al final y bien separado) -->
         <li class="nav-item mt-5 mb-4 px-2">
             <a class="nav-link d-flex align-items-center text-danger border border-danger border-opacity-25 rounded-3 py-2 px-3 hover-logout" href="{% url 'logout' %}" style="background: rgba(220, 53, 69, 0.05);">

@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'libreria',
-    'parque',
 ]
 
 MIDDLEWARE = [
@@ -77,7 +76,7 @@ WSGI_APPLICATION = "inventario.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": 'inventario_panel',
+        "NAME": 'taller_costura',
         "USER": 'root',
         "PASSWORD": 'A30205683.',
         "PORT": '3306',
