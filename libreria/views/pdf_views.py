@@ -3,6 +3,7 @@ import tempfile
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
 from libreria.models import Entrada
 from fpdf import FPDF
 
@@ -13,7 +14,7 @@ def entrada_detalle_json(request, id):
     entrada = get_object_or_404(Entrada, id=id)
     data = {
         'id': entrada.id,
-        'fecha': entrada.fecha.strftime('%d/%m/%Y %H:%M'),
+        'fecha': timezone.localtime(entrada.fecha).strftime('%d/%m/%Y %H:%M'),
         'cliente_nombre': entrada.cliente.nombre,
         'cliente_cedula': entrada.cliente.cedula,
         'cliente_telefono': entrada.cliente.telefono or '-',
@@ -37,10 +38,10 @@ class EntradaPDF(FPDF):
     def header(self):
         self.set_font('Helvetica', 'B', 18)
         self.set_text_color(31, 41, 55)
-        self.cell(0, 12, 'COMPROBANTE DE ENTRADA', ln=1, align='C')
+        self.cell(0, 12, 'COMPROBANTE DE ENTRADA', align='C', new_x="LMARGIN", new_y="NEXT")
         self.set_font('Helvetica', '', 10)
         self.set_text_color(107, 114, 128)
-        self.cell(0, 6, 'Taller de Costura - Control de Servicio', ln=1, align='C')
+        self.cell(0, 6, 'Taller de Costura - Control de Servicio', align='C', new_x="LMARGIN", new_y="NEXT")
         self.ln(4)
         # Linea separadora
         self.set_draw_color(209, 213, 219)
@@ -57,16 +58,16 @@ class EntradaPDF(FPDF):
     def add_section_title(self, title):
         self.set_font('Helvetica', 'B', 12)
         self.set_text_color(59, 130, 246)
-        self.cell(0, 8, title, ln=1)
+        self.cell(0, 8, title, new_x="LMARGIN", new_y="NEXT")
         self.ln(2)
 
     def add_field(self, label, value, bold_value=False):
         self.set_font('Helvetica', 'B', 10)
         self.set_text_color(55, 65, 81)
-        self.cell(60, 7, f'{label}:', ln=0)
+        self.cell(60, 7, f'{label}:', new_x="END")
         self.set_font('Helvetica', 'B' if bold_value else '', 10)
         self.set_text_color(17, 24, 39)
-        self.cell(0, 7, str(value), ln=1)
+        self.cell(0, 7, str(value), new_x="LMARGIN", new_y="NEXT")
 
 
 @login_required
@@ -80,10 +81,10 @@ def entrada_pdf(request, id):
     # Numero de entrada y fecha
     pdf.set_font('Helvetica', 'B', 11)
     pdf.set_text_color(17, 24, 39)
-    pdf.cell(95, 7, f'Entrada No. {entrada.id}', ln=0)
+    pdf.cell(95, 7, f'Entrada No. {entrada.id}', new_x="END")
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(107, 114, 128)
-    pdf.cell(0, 7, f'Fecha: {entrada.fecha.strftime("%d/%m/%Y %H:%M")}', align='R', ln=1)
+    pdf.cell(0, 7, f'Fecha: {timezone.localtime(entrada.fecha).strftime("%d/%m/%Y %H:%M")}', align='R', new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
     # Datos del cliente
@@ -126,7 +127,7 @@ def entrada_pdf(request, id):
     pdf.set_font('Helvetica', 'I', 9)
     pdf.set_text_color(156, 163, 175)
     usuario_nombre = entrada.usuario.username if entrada.usuario else '-'
-    pdf.cell(0, 7, f'Registrado por: {usuario_nombre}', ln=1)
+    pdf.cell(0, 7, f'Registrado por: {usuario_nombre}', new_x="LMARGIN", new_y="NEXT")
 
     # Imagen del talonario (si fue subida)
     imagen = request.FILES.get('imagen_talonario')
@@ -147,7 +148,7 @@ def entrada_pdf(request, id):
         except Exception:
             pdf.set_font('Helvetica', 'I', 10)
             pdf.set_text_color(220, 38, 38)
-            pdf.cell(0, 10, 'Error: No se pudo insertar la imagen del talonario.', ln=1)
+            pdf.cell(0, 10, 'Error: No se pudo insertar la imagen del talonario.', new_x="LMARGIN", new_y="NEXT")
         finally:
             os.unlink(tmp_path)
 
@@ -156,4 +157,3 @@ def entrada_pdf(request, id):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="entrada_{entrada.id}.pdf"'
     return response
-

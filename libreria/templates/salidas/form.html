@@ -6,7 +6,7 @@
         <div class="col-md-8">
 
             {% if entrada %}
-            <!-- Resumen Financiero Informativo -->
+            <!-- Resumen Financiero Informativo (Precargado) -->
             <div class="card shadow mb-4 border-0">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Resumen Financiero del Servicio</h5>
@@ -58,6 +58,57 @@
             </div>
             {% endif %}
 
+            <!-- Resumen Financiero Informativo (Dinámico por JS) -->
+            <div id="dynamic-resumen" class="card shadow mb-4 border-0" style="display: none;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Resumen Financiero del Servicio</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-3">
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Cliente</small>
+                            <span class="fw-bold fs-6" id="resumen-cliente">-</span>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Máquina</small>
+                            <span class="fw-bold fs-6" id="resumen-maquina">-</span>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Fecha de Ingreso</small>
+                            <span class="fw-bold fs-6" id="resumen-fecha">-</span>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-2">
+                            <small class="text-muted d-block">Monto del Trabajo</small>
+                            <span class="fw-bold fs-5" id="resumen-trabajo">$0.00</span>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <small class="text-muted d-block">Monto de Repuestos</small>
+                            <span class="fw-bold fs-5" id="resumen-repuestos">$0.00</span>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <small class="text-muted d-block">Monto Total del Servicio</small>
+                            <span class="fw-bold fs-5 text-primary" id="resumen-total">$0.00</span>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <small class="text-muted d-block">Abono Realizado</small>
+                            <span class="fw-bold fs-5 text-info" id="resumen-abono">$0.00</span>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="text-center">
+                        <small class="text-muted d-block">Saldo Pendiente por Pagar</small>
+                        <span class="fw-bold fs-3 text-danger" id="resumen-saldo">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Formulario de Salida -->
             <div class="card shadow">
                 <div class="card-header bg-dark text-white">
@@ -89,6 +140,9 @@
                             {% if form.pago_final.errors %}
                                 <div class="text-danger small mt-1">{{ form.pago_final.errors }}</div>
                             {% endif %}
+                            <small class="text-muted" id="pago-sugerido-wrapper" style="display: none;">
+                                Monto sugerido: $<span id="pago-sugerido-monto">0.00</span> (saldo pendiente)
+                            </small>
                             {% if entrada %}
                                 <small class="text-muted">Monto sugerido: ${{ entrada.total_general }} (saldo pendiente)</small>
                             {% endif %}
@@ -116,4 +170,64 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const entradaSelect = document.getElementById('id_entrada');
+    const dynamicResumen = document.getElementById('dynamic-resumen');
+    const pagoFinalInput = document.getElementById('id_pago_final');
+    const pagoSugeridoWrapper = document.getElementById('pago-sugerido-wrapper');
+    const pagoSugeridoMonto = document.getElementById('pago-sugerido-monto');
+
+    if (entradaSelect) {
+        function updateDetails() {
+            const val = entradaSelect.value;
+            if (!val) {
+                dynamicResumen.style.display = 'none';
+                if (pagoSugeridoWrapper) pagoSugeridoWrapper.style.display = 'none';
+                return;
+            }
+
+            fetch(`/entradas/${val}/detalle/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('resumen-cliente').textContent = data.cliente_nombre;
+                    document.getElementById('resumen-maquina').textContent = data.modelo_maquina;
+                    document.getElementById('resumen-fecha').textContent = data.fecha;
+                    document.getElementById('resumen-trabajo').textContent = `$${data.monto_trabajo}`;
+                    document.getElementById('resumen-repuestos').textContent = `$${data.monto_repuestos}`;
+                    document.getElementById('resumen-total').textContent = `$${data.total}`;
+                    document.getElementById('resumen-abono').textContent = `$${data.abono}`;
+                    document.getElementById('resumen-saldo').textContent = `$${data.total_general}`;
+                    
+                    // Asignar pago final recomendado
+                    if (pagoFinalInput) {
+                        pagoFinalInput.value = data.total_general;
+                    }
+                    
+                    if (pagoSugeridoWrapper && pagoSugeridoMonto) {
+                        pagoSugeridoMonto.textContent = data.total_general;
+                        pagoSugeridoWrapper.style.display = 'inline';
+                    }
+                    
+                    dynamicResumen.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching details:', error);
+                });
+        }
+
+        entradaSelect.addEventListener('change', updateDetails);
+        // Si ya hay un valor seleccionado al cargar (ej. redirección o rellenado)
+        if (entradaSelect.value) {
+            updateDetails();
+        }
+    }
+});
+</script>
 {% endblock %}
