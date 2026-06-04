@@ -1,22 +1,157 @@
 {% extends "base.html" %}
 {% block title %}Inicio{% endblock %}
 {% block content %}
-<!-- FontAwesome para iconos -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<div class="container-fluid px-4 py-3">
 
-<div class="container mt-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">Dashboard General</h2>
-        <span class="text-muted"><i class="far fa-calendar-alt me-1"></i> {% now "d F Y" %}</span>
+    <!-- Encabezado de la página -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h1 class="h2 fw-bold text-dark mb-0">Panel de Control</h1>
+            <p class="text-muted mb-0">Resumen y estado actual del taller de costura</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-light text-dark p-2 fs-6 shadow-sm">
+                <i class="bi bi-calendar3 me-2 text-primary"></i>{% now "d \d\e F, Y" %}
+            </span>
+        </div>
     </div>
 
-    <!-- Mensaje de bienvenida -->
-    <div class="text-center py-5">
-        <i class="bi bi-stack fs-1 text-muted mb-3 d-block"></i>
-        <h4 class="text-muted">Bienvenido al Nuevo Sistema</h4>
-        <p class="text-muted">La estructura base está lista para el desarrollo del nuevo sistema.</p>
+    <!-- Fichas/Tarjetas de Resumen (KPIs) -->
+    <div class="row g-4 mb-4">
+        <!-- Máquinas en Taller -->
+        <div class="col-md-6 col-lg-6">
+            <div class="card border-0 shadow-sm h-100 bg-white" style="border-left: 5px solid #ffc107 !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="text-muted fw-semibold text-uppercase mb-2">Máquinas en Taller</h6>
+                            <h2 class="display-5 fw-bold text-dark mb-0">{{ maquinas_en_taller }}</h2>
+                            <small class="text-warning fw-medium d-block mt-2">
+                                <i class="bi bi-hourglass-split me-1"></i>Pendientes por entregar
+                            </small>
+                        </div>
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                            <i class="bi bi-tools fs-1 text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Máquinas Entregadas -->
+        <div class="col-md-6 col-lg-6">
+            <div class="card border-0 shadow-sm h-100 bg-white" style="border-left: 5px solid #198754 !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="text-muted fw-semibold text-uppercase mb-2">Máquinas Entregadas</h6>
+                            <h2 class="display-5 fw-bold text-dark mb-0">{{ maquinas_entregadas }}</h2>
+                            <small class="text-success fw-medium d-block mt-2">
+                                <i class="bi bi-check-circle-fill me-1"></i>Servicios completados
+                            </small>
+                        </div>
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                            <i class="bi bi-box-arrow-right fs-1 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tablas de Actividad Reciente -->
+    <div class="row g-4">
+        <!-- Últimas Máquinas que Ingresaron -->
+        <div class="col-xl-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="card-title mb-0 fw-bold text-dark">
+                        <i class="bi bi-box-arrow-in-down text-primary me-2"></i>Últimos Ingresos (Taller)
+                    </h5>
+                    <a href="{% url 'entradas_lista' %}" class="btn btn-sm btn-outline-primary">Ver todas</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">ID</th>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Máquina</th>
+                                    <th class="pe-3 text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entrada in ultimas_ingresadas %}
+                                <tr>
+                                    <td class="ps-3 fw-semibold">#{{ entrada.id }}</td>
+                                    <td class="text-muted">{{ entrada.fecha|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <div class="fw-medium text-dark">{{ entrada.cliente.nombre }}</div>
+                                        <small class="text-muted">{{ entrada.cliente.cedula }}</small>
+                                    </td>
+                                    <td>{{ entrada.modelo_maquina }}</td>
+                                    <td class="pe-3 text-end fw-bold text-primary">${{ entrada.total }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No se registran ingresos recientes.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Últimas Máquinas Entregadas -->
+        <div class="col-xl-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="card-title mb-0 fw-bold text-dark">
+                        <i class="bi bi-check2-all text-success me-2"></i>Últimas Entregas Realizadas
+                    </h5>
+                    <a href="{% url 'salidas_lista' %}" class="btn btn-sm btn-outline-success">Ver todas</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">ID</th>
+                                    <th>Fecha Entrega</th>
+                                    <th>Cliente</th>
+                                    <th>Máquina</th>
+                                    <th class="pe-3 text-end">Pago Final</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for salida in ultimas_entregadas %}
+                                <tr>
+                                    <td class="ps-3 fw-semibold">#{{ salida.id }}</td>
+                                    <td class="text-muted">{{ salida.fecha_entrega|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <div class="fw-medium text-dark">{{ salida.entrada.cliente.nombre }}</div>
+                                        <small class="text-muted">{{ salida.entrada.cliente.cedula }}</small>
+                                    </td>
+                                    <td>{{ salida.entrada.modelo_maquina }}</td>
+                                    <td class="pe-3 text-end fw-bold text-success">${{ salida.pago_final }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No se registran entregas recientes.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>
 {% endblock %}
+
