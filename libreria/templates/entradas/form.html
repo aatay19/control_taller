@@ -12,9 +12,9 @@
                     <form method="post">
                         {% csrf_token %}
 
-                        <!-- Cliente -->
+                        <!-- Razón Social -->
                         <div class="mb-3">
-                            <label for="{{ form.cliente.id_for_label }}" class="form-label fw-semibold">Cliente</label>
+                            <label for="{{ form.cliente.id_for_label }}" class="form-label fw-semibold">Razón Social</label>
                             <div class="input-group">
                                 {{ form.cliente }}
                                 <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"

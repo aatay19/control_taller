@@ -67,8 +67,34 @@ def api_cliente_crear(request):
 # --- ENTRADAS ---
 @login_required
 def entradas_lista(request):
+    q = request.GET.get('q', '').strip()
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    orden = request.GET.get('orden', '-fecha')
+
     entradas = Entrada.objects.all()
-    return render(request, 'entradas/lista.html', {'entradas': entradas})
+
+    if q:
+        entradas = entradas.filter(
+            Q(cliente__nombre__icontains=q) |
+            Q(maquinas__modelo__icontains=q)
+        ).distinct()
+
+    if fecha_desde:
+        entradas = entradas.filter(fecha__date__gte=fecha_desde)
+    if fecha_hasta:
+        entradas = entradas.filter(fecha__date__lte=fecha_hasta)
+
+    if orden in ['fecha', '-fecha']:
+        entradas = entradas.order_by(orden)
+
+    return render(request, 'entradas/lista.html', {
+        'entradas': entradas,
+        'q': q,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
+        'orden': orden,
+    })
 
 @login_required
 def entrada_crear(request):
@@ -184,8 +210,34 @@ def taller_abono_extra(request, id):
 # --- SALIDAS ---
 @login_required
 def salidas_lista(request):
+    q = request.GET.get('q', '').strip()
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    orden = request.GET.get('orden', '-fecha_entrega')
+
     salidas = Salida.objects.all()
-    return render(request, 'salidas/lista.html', {'salidas': salidas})
+
+    if q:
+        salidas = salidas.filter(
+            Q(entrada__cliente__nombre__icontains=q) |
+            Q(entrada__maquinas__modelo__icontains=q)
+        ).distinct()
+
+    if fecha_desde:
+        salidas = salidas.filter(fecha_entrega__date__gte=fecha_desde)
+    if fecha_hasta:
+        salidas = salidas.filter(fecha_entrega__date__lte=fecha_hasta)
+
+    if orden in ['fecha_entrega', '-fecha_entrega']:
+        salidas = salidas.order_by(orden)
+
+    return render(request, 'salidas/lista.html', {
+        'salidas': salidas,
+        'q': q,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
+        'orden': orden,
+    })
 
 @login_required
 def salida_crear(request, entrada_id=None):
