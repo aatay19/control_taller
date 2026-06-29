@@ -72,11 +72,12 @@ ServicioFormSet = inlineformset_factory(
 class SalidaForm(forms.ModelForm):
     class Meta:
         model = Salida
-        fields = ['entrada', 'pago_final', 'forma_pago_salida', 'tasa_dia_salida', 'observaciones_entrega']
+        fields = ['entrada', 'pago_final', 'forma_pago_salida', 'tasa_dia_salida', 'observaciones_entrega', 'garantia']
         widgets = {
             'entrada': forms.Select(attrs={'class': 'form-select', 'readonly': 'readonly'}),
             'pago_final': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'forma_pago_salida': forms.Select(attrs={'class': 'form-select'}),
             'tasa_dia_salida': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'observaciones_entrega': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'garantia': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Ej: 30 días de garantía por el servicio realizado...'}),
         }

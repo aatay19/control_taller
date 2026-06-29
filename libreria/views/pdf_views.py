@@ -29,6 +29,9 @@ def entrada_detalle_json(request, id):
         'forma_pago_abono': entrada.get_forma_pago_abono_display() if hasattr(entrada, 'get_forma_pago_abono_display') else '-',
         'tasa_dia': str(entrada.tasa_dia),
         'modalidad_pago_restante': entrada.get_modalidad_pago_restante_display() if hasattr(entrada, 'get_modalidad_pago_restante_display') else '-',
+        'abono_extra': str(entrada.abono_extra),
+        'forma_pago_abono_extra': entrada.get_forma_pago_abono_extra_display() if hasattr(entrada, 'get_forma_pago_abono_extra_display') else '-',
+        'tasa_dia_abono_extra': str(entrada.tasa_dia_abono_extra),
         'total_general': str(entrada.total_general),
         'estado': entrada.get_estado_display(),
         'usuario': entrada.usuario.username if entrada.usuario else '-',
@@ -163,6 +166,9 @@ def entrada_pdf(request, id):
     pdf.add_field('MONTO TOTAL', f'$ {entrada.total}', bold_value=True)
     forma_pago_str = entrada.get_forma_pago_abono_display() if hasattr(entrada, 'get_forma_pago_abono_display') else '-'
     pdf.add_field('Abono Realizado', f'$ {entrada.abono} ({forma_pago_str})')
+    if getattr(entrada, 'abono_extra', 0) > 0:
+        forma_pago_extra_str = entrada.get_forma_pago_abono_extra_display() if hasattr(entrada, 'get_forma_pago_abono_extra_display') else '-'
+        pdf.add_field('Abono Extra', f'$ {entrada.abono_extra} ({forma_pago_extra_str})')
     pdf.add_field('SALDO PENDIENTE', f'$ {entrada.total_general}', bold_value=True)
     modalidad_str = entrada.get_modalidad_pago_restante_display() if hasattr(entrada, 'get_modalidad_pago_restante_display') else '-'
     pdf.add_field('Modalidad Restante', modalidad_str)

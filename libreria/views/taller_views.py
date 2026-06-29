@@ -158,6 +158,28 @@ def taller_lista(request):
     entradas = Entrada.objects.filter(estado='en_taller')
     return render(request, 'taller/lista.html', {'entradas': entradas})
 
+@login_required
+def taller_abono_extra(request, id):
+    if request.method == 'POST':
+        entrada = get_object_or_404(Entrada, id=id)
+        from decimal import Decimal
+        import json
+        try:
+            data = json.loads(request.body)
+            abono_extra = Decimal(str(data.get('abono_extra', 0)))
+            forma_pago = data.get('forma_pago_abono_extra', 'efectivo')
+            tasa_dia = Decimal(str(data.get('tasa_dia_abono_extra', 0)))
+            
+            entrada.abono_extra = abono_extra
+            entrada.forma_pago_abono_extra = forma_pago
+            entrada.tasa_dia_abono_extra = tasa_dia
+            entrada.save()
+            
+            return JsonResponse({'success': True, 'total_general': entrada.total_general})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
 
 # --- SALIDAS ---
 @login_required

@@ -230,16 +230,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         <hr>
                         <h6 class="text-primary mb-3"><i class="bi bi-currency-dollar me-1"></i>Totalización</h6>
                         <div class="row text-center mb-3">
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <small class="text-muted d-block">Monto Total</small>
                                 <span class="fw-bold text-primary">$${data.total}</span>
                             </div>
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <small class="text-muted d-block">Abono Inicial</small>
                                 <span class="fw-bold text-info">$${data.abono}</span>
                                 <div class="small text-muted mt-1">(${data.forma_pago_abono})</div>
                             </div>
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
+                                <small class="text-muted d-block">Abono Extra</small>
+                                <span class="fw-bold text-info">$${data.abono_extra}</span>
+                                <div class="small text-muted mt-1">(${data.forma_pago_abono_extra})</div>
+                            </div>
+                            <div class="col-md-3 mb-2">
                                 <small class="text-muted d-block">Pendiente</small>
                                 <span class="fw-bold text-danger fs-5">$${data.total_general}</span>
                                 <div class="small text-muted mt-1">${data.modalidad_pago_restante}</div>
@@ -247,7 +252,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div class="row">
                             <div class="col-12 text-end">
-                                <small class="text-muted">Tasa del Día: Bs ${data.tasa_dia}</small>
+                                <small class="text-muted">Tasa Inicial: Bs ${data.tasa_dia} 
+                                ${data.abono_extra > 0 ? '| Tasa Abono Extra: Bs ' + data.tasa_dia_abono_extra : ''}
+                                </small>
                             </div>
                         </div>
                         <hr>

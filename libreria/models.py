@@ -85,6 +85,10 @@ class Entrada(models.Model):
     tasa_dia = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Tasa del Día")
     modalidad_pago_restante = models.CharField(max_length=50, choices=MODALIDAD_PAGO_CHOICES, default='un_abono', verbose_name="Modalidad Pago Restante")
 
+    abono_extra = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Abono Extra")
+    forma_pago_abono_extra = models.CharField(max_length=50, choices=FORMA_PAGO_CHOICES, default='efectivo', verbose_name="Forma de Pago del Abono Extra")
+    tasa_dia_abono_extra = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Tasa del Día (Abono Extra)")
+
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='en_taller', verbose_name="Estado")
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Registrado por")
 
@@ -97,7 +101,7 @@ class Entrada(models.Model):
 
     @property
     def total_general(self):
-        return self.total - self.abono
+        return self.total - self.abono - self.abono_extra
 
     def __str__(self):
         return f"Entrada {self.id} - {self.cliente.nombre}"
@@ -122,6 +126,7 @@ class Salida(models.Model):
     forma_pago_salida = models.CharField(max_length=50, choices=FORMA_PAGO_CHOICES, default='efectivo', verbose_name="Forma de Pago")
     tasa_dia_salida = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Tasa del Día")
     observaciones_entrega = models.TextField(blank=True, verbose_name="Observaciones de Entrega")
+    garantia = models.TextField(blank=True, verbose_name="Garantía")
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Entregado por")
 
     def save(self, *args, **kwargs):

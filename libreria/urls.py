@@ -21,6 +21,7 @@ urlpatterns = [
     path('entradas/<int:id>/pdf/', views.entrada_pdf, name='entrada_pdf'),
     
     path('taller/', views.taller_lista, name='taller_lista'),
+    path('taller/abono_extra/<int:id>/', views.taller_abono_extra, name='taller_abono_extra'),
     
     path('salidas/', views.salidas_lista, name='salidas_lista'),
     path('salidas/crear/', views.salida_crear, name='salida_crear'),

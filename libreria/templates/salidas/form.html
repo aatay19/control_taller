@@ -5,77 +5,12 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
 
-            {% if entrada %}
-            <!-- Resumen Financiero Informativo (Precargado) -->
-            <div class="card shadow mb-4 border-0">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Resumen Financiero del Servicio</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center mb-3">
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Cliente</small>
-                            <span class="fw-bold fs-6">{{ entrada.cliente.nombre }}</span>
-                        </div>
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Máquinas</small>
-                            <span class="fw-bold fs-6">
-                                {% for m in entrada.maquinas.all %}
-                                    {{ m.modelo }}{% if not forloop.last %}, {% endif %}
-                                {% empty %}
-                                    -
-                                {% endfor %}
-                            </span>
-                        </div>
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Fecha de Ingreso</small>
-                            <span class="fw-bold fs-6">{{ entrada.fecha|date:"d/m/Y" }}</span>
-                        </div>
-                    </div>
 
-                    <hr>
-
-                    <div class="row text-center">
-                        <div class="col-md-3 mb-2">
-                            <small class="text-muted d-block">Total Servicios</small>
-                            <span class="fw-bold fs-5">
-                                {% for s in entrada.servicios.all %}
-                                    <div class="small fw-normal">- {{ s.nombre }} (${{ s.valor }})</div>
-                                {% endfor %}
-                            </span>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <small class="text-muted d-block">Total Repuestos</small>
-                            <span class="fw-bold fs-5">
-                                {% for r in entrada.repuestos.all %}
-                                    <div class="small fw-normal">- {{ r.nombre }} (${{ r.valor }})</div>
-                                {% endfor %}
-                            </span>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <small class="text-muted d-block">Monto Total del Servicio</small>
-                            <span class="fw-bold fs-5 text-primary">${{ entrada.total }}</span>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <small class="text-muted d-block">Abono Realizado</small>
-                            <span class="fw-bold fs-5 text-info">${{ entrada.abono }}</span>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    <div class="text-center">
-                        <small class="text-muted d-block">Saldo Pendiente por Pagar</small>
-                        <span class="fw-bold fs-3 text-danger">${{ entrada.total_general }}</span>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
 
             <!-- Resumen Financiero Informativo (Dinámico por JS) -->
             <div id="dynamic-resumen" class="card shadow mb-4 border-0" style="display: none;">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Resumen Financiero del Servicio</h5>
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Resumen del Servicio</h5>
                 </div>
                 <div class="card-body">
                     <div class="row text-center mb-3">
@@ -109,8 +44,14 @@
                             <span class="fw-bold fs-5 text-primary" id="resumen-total">$0.00</span>
                         </div>
                         <div class="col-md-3 mb-2">
-                            <small class="text-muted d-block">Abono Realizado</small>
+                            <small class="text-muted d-block">Abono Inicial</small>
                             <span class="fw-bold fs-5 text-info" id="resumen-abono">$0.00</span>
+                            <div class="small text-muted" id="resumen-tasa-abono"></div>
+                        </div>
+                        <div class="col-md-3 mb-2" id="bloque-abono-extra" style="display: none;">
+                            <small class="text-muted d-block">Abono Extra</small>
+                            <span class="fw-bold fs-5 text-info" id="resumen-abono-extra">$0.00</span>
+                            <div class="small text-muted" id="resumen-tasa-extra"></div>
                         </div>
                     </div>
 
@@ -194,6 +135,22 @@
                             {% endif %}
                         </div>
 
+                        <hr class="my-3">
+
+                        <!-- Garantía -->
+                        <div class="card mb-3 border-warning">
+                            <div class="card-header bg-warning text-dark fw-bold">
+                                <i class="bi bi-shield-check me-2"></i>Garantía
+                            </div>
+                            <div class="card-body">
+                                <label for="{{ form.garantia.id_for_label }}" class="form-label text-muted small">Describe los términos de la garantía ofrecida al cliente (opcional)</label>
+                                {{ form.garantia }}
+                                {% if form.garantia.errors %}
+                                    <div class="text-danger small mt-1">{{ form.garantia.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-end mt-4">
                             <a href="{% url 'taller_lista' %}" class="btn btn-secondary me-2">Cancelar</a>
                             <button type="submit" class="btn btn-success btn-lg">
@@ -242,6 +199,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('resumen-repuestos').textContent = data.repuestos ? data.repuestos.length + ' item(s)' : '-';
                     document.getElementById('resumen-total').textContent = `$${data.total}`;
                     document.getElementById('resumen-abono').textContent = `$${data.abono}`;
+                    document.getElementById('resumen-tasa-abono').textContent = `Tasa: Bs ${data.tasa_dia}`;
+                    
+                    const abonoExtraVal = parseFloat(data.abono_extra || 0);
+                    if (abonoExtraVal > 0) {
+                        document.getElementById('resumen-abono-extra').textContent = `$${data.abono_extra}`;
+                        document.getElementById('resumen-tasa-extra').textContent = `Tasa: Bs ${data.tasa_dia_abono_extra}`;
+                        document.getElementById('bloque-abono-extra').style.display = 'block';
+                    } else {
+                        document.getElementById('bloque-abono-extra').style.display = 'none';
+                    }
+                    
                     document.getElementById('resumen-saldo').textContent = `$${data.total_general}`;
                     
                     // Asignar pago final recomendado
