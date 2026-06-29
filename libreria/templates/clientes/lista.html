@@ -7,15 +7,31 @@
         <a href="{% url 'cliente_crear' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Nuevo Cliente</a>
     </div>
 
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="GET" class="d-flex align-items-center">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" class="form-control" placeholder="Buscar por Razón Social o Cédula / RIF..." value="{{ query|default_if_none:'' }}">
+                    <button class="btn btn-outline-primary" type="submit">Buscar</button>
+                    {% if query %}
+                    <a href="{% url 'clientes_lista' %}" class="btn btn-outline-secondary">Limpiar</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card shadow">
         <div class="card-body table-responsive">
             <table class="table table-hover">
                 <thead class="table-dark">
                     <tr>
-                        <th>Nombre</th>
-                        <th>Cédula</th>
+                        <th>Razón Social</th>
+                        <th>Cédula o RIF</th>
                         <th>Teléfono</th>
                         <th>Dirección</th>
+                        <th>Forma de Despacho</th>
                         <th>Fecha de Registro</th>
                         <th>Acciones</th>
                     </tr>
@@ -27,6 +43,7 @@
                         <td>{{ cliente.cedula }}</td>
                         <td>{{ cliente.telefono }}</td>
                         <td>{{ cliente.direccion }}</td>
+                        <td>{{ cliente.get_forma_despacho_display }}</td>
                         <td>{{ cliente.fecha_registro|date:"d/m/Y" }}</td>
                         <td>
                             <a href="{% url 'cliente_editar' cliente.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
@@ -35,7 +52,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center py-4">No hay clientes registrados.</td>
+                        <td colspan="7" class="text-center py-4">No hay clientes registrados.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

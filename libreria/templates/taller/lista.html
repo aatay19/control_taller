@@ -28,7 +28,14 @@
                         <td>{{ entrada.fecha|date:"d/m/Y" }}</td>
                         <td>{{ entrada.cliente.nombre }}</td>
                         <td>{{ entrada.cliente.telefono|default:"-" }}</td>
-                        <td>{{ entrada.modelo_maquina }}</td>
+                        <td>
+                            {% for m in entrada.maquinas.all %}
+                                {{ m.modelo }}
+                                {% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                -
+                            {% endfor %}
+                        </td>
                         <td>{{ entrada.observaciones|truncatewords:15 }}</td>
                         <td class="fw-bold text-danger">${{ entrada.total_general }}</td>
                         <td>{{ entrada.usuario.username|default:"-" }}</td>

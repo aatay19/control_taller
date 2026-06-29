@@ -26,7 +26,14 @@
                     <tr>
                         <td>{{ entrada.fecha|date:"d/m/Y H:i" }}</td>
                         <td>{{ entrada.cliente.nombre }}</td>
-                        <td>{{ entrada.modelo_maquina }}</td>
+                        <td>
+                            {% for m in entrada.maquinas.all %}
+                                {{ m.modelo }}
+                                {% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                -
+                            {% endfor %}
+                        </td>
                         <td>
                             <span class="badge {% if entrada.estado == 'en_taller' %}bg-warning{% else %}bg-success{% endif %}">
                                 {{ entrada.get_estado_display }}
@@ -191,8 +198,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h6 class="text-primary mb-3"><i class="bi bi-gear me-1"></i>Datos de la Máquina</h6>
                         <div class="row mb-2">
                             <div class="col-md-6">
-                                <small class="text-muted">Modelo</small>
-                                <p class="fw-semibold mb-1">${data.modelo_maquina}</p>
+                                <small class="text-muted">Modelo(s)</small>
+                                <p class="fw-semibold mb-1">${data.maquinas}</p>
                             </div>
                             <div class="col-md-6">
                                 <small class="text-muted">Estado</small>
@@ -204,25 +211,34 @@ document.addEventListener('DOMContentLoaded', function() {
                             <p class="fw-semibold mb-1">${data.observaciones}</p>
                         </div>
                         <hr>
-                        <h6 class="text-primary mb-3"><i class="bi bi-currency-dollar me-1"></i>Información Financiera</h6>
+                        <hr>
+                        <h6 class="text-primary mb-3"><i class="bi bi-tools me-1"></i>Repuestos y Servicios</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <small class="text-muted d-block fw-bold mb-2">Servicios</small>
+                                ${data.servicios.length > 0 ? 
+                                    data.servicios.map(s => `<div class="d-flex justify-content-between border-bottom pb-1 mb-1"><span>${s.nombre}</span> <span class="fw-semibold">$${s.valor}</span></div>`).join('') 
+                                    : '<p class="text-muted small">Sin servicios</p>'}
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted d-block fw-bold mb-2">Repuestos</small>
+                                ${data.repuestos.length > 0 ? 
+                                    data.repuestos.map(r => `<div class="d-flex justify-content-between border-bottom pb-1 mb-1"><span>${r.nombre}</span> <span class="fw-semibold">$${r.valor}</span></div>`).join('') 
+                                    : '<p class="text-muted small">Sin repuestos</p>'}
+                            </div>
+                        </div>
+                        <hr>
+                        <h6 class="text-primary mb-3"><i class="bi bi-currency-dollar me-1"></i>Totalización</h6>
                         <div class="row text-center">
-                            <div class="col-md-3 mb-2">
-                                <small class="text-muted d-block">Monto Trabajo</small>
-                                <span class="fw-bold">$${data.monto_trabajo}</span>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <small class="text-muted d-block">Monto Repuestos</small>
-                                <span class="fw-bold">$${data.monto_repuestos}</span>
-                            </div>
-                            <div class="col-md-2 mb-2">
-                                <small class="text-muted d-block">Total</small>
+                            <div class="col-md-4 mb-2">
+                                <small class="text-muted d-block">Monto Total</small>
                                 <span class="fw-bold text-primary">$${data.total}</span>
                             </div>
-                            <div class="col-md-2 mb-2">
+                            <div class="col-md-4 mb-2">
                                 <small class="text-muted d-block">Abono</small>
                                 <span class="fw-bold text-info">$${data.abono}</span>
                             </div>
-                            <div class="col-md-2 mb-2">
+                            <div class="col-md-4 mb-2">
                                 <small class="text-muted d-block">Pendiente</small>
                                 <span class="fw-bold text-danger fs-5">$${data.total_general}</span>
                             </div>

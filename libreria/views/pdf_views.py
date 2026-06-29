@@ -19,10 +19,11 @@ def entrada_detalle_json(request, id):
         'cliente_cedula': entrada.cliente.cedula,
         'cliente_telefono': entrada.cliente.telefono or '-',
         'cliente_direccion': entrada.cliente.direccion or '-',
-        'modelo_maquina': entrada.modelo_maquina,
+        'cliente_presente': 'Sí' if entrada.cliente_presente else 'No',
+        'maquinas': ", ".join([f"{m.modelo} (Ser: {m.serial})" if m.serial else m.modelo for m in entrada.maquinas.all()]),
         'observaciones': entrada.observaciones,
-        'monto_trabajo': str(entrada.monto_trabajo),
-        'monto_repuestos': str(entrada.monto_repuestos),
+        'repuestos': [{'nombre': r.nombre, 'valor': str(r.valor)} for r in entrada.repuestos.all()],
+        'servicios': [{'nombre': s.nombre, 'valor': str(s.valor)} for s in entrada.servicios.all()],
         'total': str(entrada.total),
         'abono': str(entrada.abono),
         'total_general': str(entrada.total_general),
@@ -97,8 +98,10 @@ def entrada_pdf(request, id):
 
     # Datos de la maquina
     pdf.add_section_title('Datos de la Maquina')
-    pdf.add_field('Modelo', entrada.modelo_maquina)
+    maquinas_str = ", ".join([f"{m.modelo} (Ser: {m.serial})" if m.serial else m.modelo for m in entrada.maquinas.all()])
+    pdf.add_field('Modelos/Seriales', maquinas_str)
     pdf.add_field('Estado', entrada.get_estado_display())
+    pdf.add_field('Cliente Presente', 'Sí' if entrada.cliente_presente else 'No')
     pdf.ln(2)
 
     # Observaciones
@@ -108,10 +111,46 @@ def entrada_pdf(request, id):
     pdf.multi_cell(0, 6, entrada.observaciones or '-')
     pdf.ln(4)
 
-    # Informacion financiera
-    pdf.add_section_title('Informacion Financiera')
-    pdf.add_field('Monto del Trabajo', f'$ {entrada.monto_trabajo}')
-    pdf.add_field('Monto de Repuestos', f'$ {entrada.monto_repuestos}')
+    # Repuestos y Servicios Desglosados
+    pdf.add_section_title('Desglose Financiero')
+    
+    total_servicios = 0
+    servicios = entrada.servicios.all()
+    if servicios:
+        pdf.set_font('Helvetica', 'B', 10)
+        pdf.cell(0, 6, 'Servicios:', new_x="LMARGIN", new_y="NEXT")
+        pdf.set_font('Helvetica', '', 10)
+        for s in servicios:
+            pdf.cell(10, 6, '')
+            pdf.cell(120, 6, f"- {s.nombre}")
+            pdf.cell(0, 6, f"$ {s.valor}", align='R', new_x="LMARGIN", new_y="NEXT")
+            total_servicios += s.valor
+        pdf.ln(2)
+
+    total_repuestos = 0
+    repuestos = entrada.repuestos.all()
+    if repuestos:
+        pdf.set_font('Helvetica', 'B', 10)
+        pdf.cell(0, 6, 'Repuestos:', new_x="LMARGIN", new_y="NEXT")
+        pdf.set_font('Helvetica', '', 10)
+        for r in repuestos:
+            pdf.cell(10, 6, '')
+            pdf.cell(120, 6, f"- {r.nombre}")
+            pdf.cell(0, 6, f"$ {r.valor}", align='R', new_x="LMARGIN", new_y="NEXT")
+            total_repuestos += r.valor
+        pdf.ln(2)
+
+    if not servicios and not repuestos:
+        pdf.set_font('Helvetica', 'I', 10)
+        pdf.cell(0, 6, 'Sin repuestos ni servicios registrados.', new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(2)
+    else:
+        pdf.set_font('Helvetica', 'B', 10)
+        pdf.cell(130, 6, 'Subtotal Servicios:')
+        pdf.cell(0, 6, f"$ {total_servicios}", align='R', new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(130, 6, 'Subtotal Repuestos:')
+        pdf.cell(0, 6, f"$ {total_repuestos}", align='R', new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(2)
 
     # Linea separadora
     pdf.set_draw_color(229, 231, 235)

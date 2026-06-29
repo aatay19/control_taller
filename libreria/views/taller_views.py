@@ -1,14 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from libreria.models import Cliente, Entrada, Salida
-from libreria.forms import ClienteForm, EntradaForm, SalidaForm
+from libreria.forms import ClienteForm, EntradaForm, SalidaForm, MaquinaFormSet, RepuestoFormSet, ServicioFormSet
 from django.contrib import messages
 
 # --- CLIENTES ---
 @login_required
 def clientes_lista(request):
-    clientes = Cliente.objects.all()
-    return render(request, 'clientes/lista.html', {'clientes': clientes})
+    query = request.GET.get('q', '')
+    if query:
+        clientes = Cliente.objects.filter(
+            Q(nombre__icontains=query) | Q(cedula__icontains=query)
+        )
+    else:
+        clientes = Cliente.objects.all()
+    return render(request, 'clientes/lista.html', {'clientes': clientes, 'query': query})
 
 @login_required
 def cliente_crear(request):
@@ -44,6 +52,17 @@ def cliente_eliminar(request, id):
         return redirect('clientes_lista')
     return render(request, 'clientes/eliminar.html', {'cliente': cliente})
 
+@login_required
+def api_cliente_crear(request):
+    if request.method == 'POST':
+        form = ClienteForm(request.POST)
+        if form.is_valid():
+            cliente = form.save()
+            return JsonResponse({'success': True, 'id': cliente.id, 'nombre': cliente.nombre, 'cedula': cliente.cedula})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
 
 # --- ENTRADAS ---
 @login_required
@@ -55,28 +74,72 @@ def entradas_lista(request):
 def entrada_crear(request):
     if request.method == 'POST':
         form = EntradaForm(request.POST)
-        if form.is_valid():
+        formset = MaquinaFormSet(request.POST)
+        repuesto_formset = RepuestoFormSet(request.POST)
+        servicio_formset = ServicioFormSet(request.POST)
+        
+        if form.is_valid() and formset.is_valid() and repuesto_formset.is_valid() and servicio_formset.is_valid():
             entrada = form.save(commit=False)
             entrada.usuario = request.user
             entrada.save()
+            
+            # Guardar formsets
+            for inline_formset in [formset, repuesto_formset, servicio_formset]:
+                items = inline_formset.save(commit=False)
+                for item in items:
+                    item.entrada = entrada
+                    item.save()
+                for obj in inline_formset.deleted_objects:
+                    obj.delete()
+
             messages.success(request, 'Entrada registrada correctamente.')
             return redirect('entradas_lista')
     else:
         form = EntradaForm()
-    return render(request, 'entradas/form.html', {'form': form, 'titulo': 'Nueva Entrada'})
+        formset = MaquinaFormSet()
+        repuesto_formset = RepuestoFormSet()
+        servicio_formset = ServicioFormSet()
+        
+    context = {
+        'form': form, 
+        'formset': formset, 
+        'repuesto_formset': repuesto_formset,
+        'servicio_formset': servicio_formset,
+        'titulo': 'Nueva Entrada'
+    }
+    return render(request, 'entradas/form.html', context)
 
 @login_required
 def entrada_editar(request, id):
     entrada = get_object_or_404(Entrada, id=id)
     if request.method == 'POST':
         form = EntradaForm(request.POST, instance=entrada)
-        if form.is_valid():
+        formset = MaquinaFormSet(request.POST, instance=entrada)
+        repuesto_formset = RepuestoFormSet(request.POST, instance=entrada)
+        servicio_formset = ServicioFormSet(request.POST, instance=entrada)
+        
+        if form.is_valid() and formset.is_valid() and repuesto_formset.is_valid() and servicio_formset.is_valid():
             form.save()
+            formset.save()
+            repuesto_formset.save()
+            servicio_formset.save()
+            
             messages.success(request, 'Entrada actualizada correctamente.')
             return redirect('entradas_lista')
     else:
         form = EntradaForm(instance=entrada)
-    return render(request, 'entradas/form.html', {'form': form, 'titulo': 'Editar Entrada'})
+        formset = MaquinaFormSet(instance=entrada)
+        repuesto_formset = RepuestoFormSet(instance=entrada)
+        servicio_formset = ServicioFormSet(instance=entrada)
+        
+    context = {
+        'form': form, 
+        'formset': formset, 
+        'repuesto_formset': repuesto_formset,
+        'servicio_formset': servicio_formset,
+        'titulo': 'Editar Entrada'
+    }
+    return render(request, 'entradas/form.html', context)
 
 @login_required
 def entrada_eliminar(request, id):

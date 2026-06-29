@@ -37,10 +37,16 @@ def guardar_perfil_usuario(sender, instance, **kwargs):
 
 
 class Cliente(models.Model):
-    nombre = models.CharField(max_length=100, verbose_name="Nombre")
-    cedula = models.CharField(max_length=20, unique=True, verbose_name="Cédula")
+    DESPACHO_CHOICES = [
+        ('delivery', 'Delivery'),
+        ('en_tienda', 'En Tienda'),
+    ]
+
+    nombre = models.CharField(max_length=100, verbose_name="Razón Social")
+    cedula = models.CharField(max_length=20, unique=True, verbose_name="Cédula o RIF")
     telefono = models.CharField(max_length=20, blank=True, verbose_name="Teléfono")
     direccion = models.TextField(blank=True, verbose_name="Dirección")
+    forma_despacho = models.CharField(max_length=20, choices=DESPACHO_CHOICES, default='en_tienda', verbose_name="Forma de Despacho")
     fecha_registro = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Registro")
 
     def __str__(self):
@@ -59,11 +65,9 @@ class Entrada(models.Model):
 
     fecha = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Entrada")
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='entradas', verbose_name="Cliente")
-    modelo_maquina = models.CharField(max_length=100, verbose_name="Modelo de la Máquina")
+    cliente_presente = models.BooleanField(default=False, verbose_name="¿Cliente está presente?")
     observaciones = models.TextField(verbose_name="Observaciones o Repuestos que lleva")
 
-    monto_trabajo = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Monto del Trabajo")
-    monto_repuestos = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Monto de los Repuestos")
     abono = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Abono")
 
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='en_taller', verbose_name="Estado")
@@ -71,14 +75,17 @@ class Entrada(models.Model):
 
     @property
     def total(self):
-        return self.monto_trabajo + self.monto_repuestos
+        # Sumar todos los repuestos y servicios asociados a esta entrada
+        total_repuestos = sum(r.valor for r in self.repuestos.all())
+        total_servicios = sum(s.valor for s in self.servicios.all())
+        return total_repuestos + total_servicios
 
     @property
     def total_general(self):
         return self.total - self.abono
 
     def __str__(self):
-        return f"Entrada {self.id} - {self.cliente.nombre} ({self.modelo_maquina})"
+        return f"Entrada {self.id} - {self.cliente.nombre}"
 
     class Meta:
         verbose_name = "Entrada"
@@ -106,3 +113,40 @@ class Salida(models.Model):
         verbose_name = "Salida"
         verbose_name_plural = "Salidas"
         ordering = ['-fecha_entrega']
+
+
+class Maquina(models.Model):
+    entrada = models.ForeignKey(Entrada, on_delete=models.CASCADE, related_name='maquinas', verbose_name="Entrada Asociada")
+    modelo = models.CharField(max_length=100, verbose_name="Modelo")
+    serial = models.CharField(max_length=100, blank=True, verbose_name="Serial")
+
+    def __str__(self):
+        return f"{self.modelo} (Serial: {self.serial})"
+
+    class Meta:
+        verbose_name = "Máquina"
+        verbose_name_plural = "Máquinas"
+
+class Repuesto(models.Model):
+    entrada = models.ForeignKey(Entrada, on_delete=models.CASCADE, related_name='repuestos', verbose_name="Entrada Asociada")
+    nombre = models.CharField(max_length=150, verbose_name="Nombre del Repuesto")
+    valor = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Valor")
+
+    def __str__(self):
+        return f"{self.nombre} (${self.valor})"
+
+    class Meta:
+        verbose_name = "Repuesto"
+        verbose_name_plural = "Repuestos"
+
+class Servicio(models.Model):
+    entrada = models.ForeignKey(Entrada, on_delete=models.CASCADE, related_name='servicios', verbose_name="Entrada Asociada")
+    nombre = models.CharField(max_length=150, verbose_name="Nombre del Servicio")
+    valor = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Valor")
+
+    def __str__(self):
+        return f"{self.nombre} (${self.valor})"
+
+    class Meta:
+        verbose_name = "Servicio"
+        verbose_name_plural = "Servicios"

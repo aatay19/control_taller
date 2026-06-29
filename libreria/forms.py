@@ -1,29 +1,70 @@
 from django import forms
-from .models import Cliente, Entrada, Salida
+from django.forms import inlineformset_factory
+from .models import Cliente, Entrada, Salida, Maquina, Repuesto, Servicio
 
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
-        fields = ['nombre', 'cedula', 'telefono', 'direccion']
+        fields = ['nombre', 'cedula', 'telefono', 'direccion', 'forma_despacho']
+        labels = {
+            'nombre': 'Razón Social',
+            'cedula': 'Cédula o RIF',
+            'forma_despacho': 'Forma de Despacho',
+        }
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'cedula': forms.TextInput(attrs={'class': 'form-control'}),
             'telefono': forms.TextInput(attrs={'class': 'form-control'}),
             'direccion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'forma_despacho': forms.Select(attrs={'class': 'form-select'}),
         }
 
 class EntradaForm(forms.ModelForm):
     class Meta:
         model = Entrada
-        fields = ['cliente', 'modelo_maquina', 'observaciones', 'monto_trabajo', 'monto_repuestos', 'abono']
+        fields = ['cliente', 'cliente_presente', 'observaciones', 'abono']
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-select'}),
-            'modelo_maquina': forms.TextInput(attrs={'class': 'form-control'}),
+            'cliente_presente': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'monto_trabajo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'monto_repuestos': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'abono': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
+
+MaquinaFormSet = inlineformset_factory(
+    Entrada, 
+    Maquina, 
+    fields=['modelo', 'serial'], 
+    extra=1, 
+    can_delete=True,
+    widgets={
+        'modelo': forms.TextInput(attrs={'class': 'form-control'}),
+        'serial': forms.TextInput(attrs={'class': 'form-control'}),
+    }
+)
+
+RepuestoFormSet = inlineformset_factory(
+    Entrada,
+    Repuesto,
+    fields=['nombre', 'valor'],
+    extra=1,
+    can_delete=True,
+    widgets={
+        'nombre': forms.TextInput(attrs={'class': 'form-control repuesto-nombre'}),
+        'valor': forms.NumberInput(attrs={'class': 'form-control repuesto-valor', 'step': '0.01'}),
+    }
+)
+
+ServicioFormSet = inlineformset_factory(
+    Entrada,
+    Servicio,
+    fields=['nombre', 'valor'],
+    extra=1,
+    can_delete=True,
+    widgets={
+        'nombre': forms.TextInput(attrs={'class': 'form-control servicio-nombre'}),
+        'valor': forms.NumberInput(attrs={'class': 'form-control servicio-valor', 'step': '0.01'}),
+    }
+)
 
 class SalidaForm(forms.ModelForm):
     class Meta:

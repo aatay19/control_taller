@@ -15,50 +15,209 @@
                         <!-- Cliente -->
                         <div class="mb-3">
                             <label for="{{ form.cliente.id_for_label }}" class="form-label fw-semibold">Cliente</label>
-                            {{ form.cliente }}
+                            <div class="input-group">
+                                {{ form.cliente }}
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                                    data-bs-target="#modalCrearCliente">
+                                    <i class="bi bi-plus-circle"></i> Nuevo
+                                </button>
+                            </div>
                             {% if form.cliente.errors %}
-                                <div class="text-danger small mt-1">{{ form.cliente.errors }}</div>
+                            <div class="text-danger small mt-1">{{ form.cliente.errors }}</div>
                             {% endif %}
                         </div>
 
-                        <!-- Modelo de la Máquina -->
-                        <div class="mb-3">
-                            <label for="{{ form.modelo_maquina.id_for_label }}" class="form-label fw-semibold">Modelo de la Máquina</label>
-                            {{ form.modelo_maquina }}
-                            {% if form.modelo_maquina.errors %}
-                                <div class="text-danger small mt-1">{{ form.modelo_maquina.errors }}</div>
-                            {% endif %}
+
+
+                        <!-- Máquinas (Formset) -->
+                        <hr class="my-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0"><i class="bi bi-laptop me-1"></i>Máquina(s)</h5>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="add-maquina-btn">
+                                <i class="bi bi-plus"></i> Añadir otra Máquina
+                            </button>
                         </div>
+
+                        {{ formset.management_form }}
+                        <div id="maquinas-container">
+                            {% for maquina_form in formset %}
+                            <div class="maquina-form border rounded p-3 mb-3 bg-light position-relative">
+                                {% if maquina_form.instance.pk %}{{ maquina_form.id }}{% endif %}
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label fw-semibold">Modelo</label>
+                                        {{ maquina_form.modelo }}
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label fw-semibold">Serial</label>
+                                        {{ maquina_form.serial }}
+                                    </div>
+                                </div>
+                                {% if formset.can_delete %}
+                                <div class="form-check text-end mt-2">
+                                    {{ maquina_form.DELETE }}
+                                    <label class="form-check-label text-danger"
+                                        for="{{ maquina_form.DELETE.id_for_label }}">Eliminar máquina</label>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Template hidden for JS cloning -->
+                        <div id="empty-form-template" class="d-none">
+                            <div class="maquina-form border rounded p-3 mb-3 bg-light position-relative">
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label fw-semibold">Modelo</label>
+                                        {{ formset.empty_form.modelo }}
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label fw-semibold">Serial</label>
+                                        {{ formset.empty_form.serial }}
+                                    </div>
+                                </div>
+                                {% if formset.can_delete %}
+                                <div class="form-check text-end mt-2">
+                                    {{ formset.empty_form.DELETE }}
+                                    <label class="form-check-label text-danger"
+                                        for="{{ formset.empty_form.DELETE.id_for_label }}">Eliminar máquina</label>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Cliente Presente -->
+                        <div class="mb-3 form-check ms-1">
+                            {{ form.cliente_presente }}
+                            <label class="form-check-label fw-semibold" for="{{ form.cliente_presente.id_for_label }}">
+                                ¿Cliente está presente?
+                            </label>
+                        </div>
+
+                        <hr class="my-4">
 
                         <!-- Observaciones -->
                         <div class="mb-3">
-                            <label for="{{ form.observaciones.id_for_label }}" class="form-label fw-semibold">Observaciones o Repuestos que lleva</label>
+                            <label for="{{ form.observaciones.id_for_label }}"
+                                class="form-label fw-semibold">Observaciones o Repuestos que lleva</label>
                             {{ form.observaciones }}
                             {% if form.observaciones.errors %}
-                                <div class="text-danger small mt-1">{{ form.observaciones.errors }}</div>
+                            <div class="text-danger small mt-1">{{ form.observaciones.errors }}</div>
                             {% endif %}
                         </div>
 
                         <hr class="my-4">
-                        <h5 class="mb-3"><i class="bi bi-currency-dollar me-1"></i>Información Financiera</h5>
+                        <hr class="my-4">
+                        <h5 class="mb-3"><i class="bi bi-tools me-1"></i>Repuestos y Servicios</h5>
 
-                        <div class="row">
-                            <!-- Monto del Trabajo -->
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.monto_trabajo.id_for_label }}" class="form-label fw-semibold">Monto del Trabajo</label>
-                                {{ form.monto_trabajo }}
-                                {% if form.monto_trabajo.errors %}
-                                    <div class="text-danger small mt-1">{{ form.monto_trabajo.errors }}</div>
-                                {% endif %}
+                        <!-- Repuestos (Formset) -->
+                        <div class="card mb-4 bg-light shadow-sm">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><i class="bi bi-box me-1"></i>Repuestos</h6>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="add-repuesto-btn">
+                                    <i class="bi bi-plus"></i> Añadir Repuesto
+                                </button>
                             </div>
+                            <div class="card-body">
+                                {{ repuesto_formset.management_form }}
+                                <div id="repuestos-container">
+                                    {% for repuesto_form in repuesto_formset %}
+                                    <div class="repuesto-form row mb-2 align-items-center">
+                                        {% if repuesto_form.instance.pk %}{{ repuesto_form.id }}{% endif %}
+                                        <div class="col-md-7">
+                                            <label class="form-label d-md-none fw-semibold">Nombre del Repuesto</label>
+                                            {{ repuesto_form.nombre }}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label d-md-none fw-semibold">Valor</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                {{ repuesto_form.valor }}
+                                            </div>
+                                        </div>
+                                        {% if repuesto_formset.can_delete %}
+                                        <div class="col-md-1 text-end mt-2 mt-md-0">
+                                            {{ repuesto_form.DELETE }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <!-- Template hidden for Repuestos -->
+                                <div id="empty-repuesto-template" class="d-none">
+                                    <div class="repuesto-form row mb-2 align-items-center">
+                                        <div class="col-md-7">
+                                            {{ repuesto_formset.empty_form.nombre }}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                {{ repuesto_formset.empty_form.valor }}
+                                            </div>
+                                        </div>
+                                        {% if repuesto_formset.can_delete %}
+                                        <div class="col-md-1 text-end">
+                                            {{ repuesto_formset.empty_form.DELETE }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                            <!-- Monto de los Repuestos -->
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.monto_repuestos.id_for_label }}" class="form-label fw-semibold">Monto de los Repuestos</label>
-                                {{ form.monto_repuestos }}
-                                {% if form.monto_repuestos.errors %}
-                                    <div class="text-danger small mt-1">{{ form.monto_repuestos.errors }}</div>
-                                {% endif %}
+                        <!-- Servicios (Formset) -->
+                        <div class="card mb-4 bg-light shadow-sm">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><i class="bi bi-wrench me-1"></i>Servicios</h6>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="add-servicio-btn">
+                                    <i class="bi bi-plus"></i> Añadir Servicio
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                {{ servicio_formset.management_form }}
+                                <div id="servicios-container">
+                                    {% for servicio_form in servicio_formset %}
+                                    <div class="servicio-form row mb-2 align-items-center">
+                                        {% if servicio_form.instance.pk %}{{ servicio_form.id }}{% endif %}
+                                        <div class="col-md-7">
+                                            <label class="form-label d-md-none fw-semibold">Nombre del Servicio</label>
+                                            {{ servicio_form.nombre }}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label d-md-none fw-semibold">Valor</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                {{ servicio_form.valor }}
+                                            </div>
+                                        </div>
+                                        {% if servicio_formset.can_delete %}
+                                        <div class="col-md-1 text-end mt-2 mt-md-0">
+                                            {{ servicio_form.DELETE }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <!-- Template hidden for Servicios -->
+                                <div id="empty-servicio-template" class="d-none">
+                                    <div class="servicio-form row mb-2 align-items-center">
+                                        <div class="col-md-7">
+                                            {{ servicio_formset.empty_form.nombre }}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                {{ servicio_formset.empty_form.valor }}
+                                            </div>
+                                        </div>
+                                        {% if servicio_formset.can_delete %}
+                                        <div class="col-md-1 text-end">
+                                            {{ servicio_formset.empty_form.DELETE }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -67,9 +226,11 @@
                             <label class="form-label fw-semibold">Monto Total</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-success text-white fw-bold">$</span>
-                                <input type="text" id="monto_total_display" class="form-control form-control-lg fw-bold text-success bg-light" readonly value="0.00">
+                                <input type="text" id="monto_total_display"
+                                    class="form-control form-control-lg fw-bold text-success bg-light" readonly
+                                    value="0.00">
                             </div>
-                            <small class="text-muted">Se calcula automáticamente: Monto del Trabajo + Monto de los Repuestos</small>
+                            <small class="text-muted">Se calcula automáticamente al sumar los Repuestos y Servicios.</small>
                         </div>
 
                         <hr class="my-3">
@@ -79,7 +240,7 @@
                             <label for="{{ form.abono.id_for_label }}" class="form-label fw-semibold">Abono</label>
                             {{ form.abono }}
                             {% if form.abono.errors %}
-                                <div class="text-danger small mt-1">{{ form.abono.errors }}</div>
+                            <div class="text-danger small mt-1">{{ form.abono.errors }}</div>
                             {% endif %}
                         </div>
 
@@ -93,28 +254,227 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Crear Cliente -->
+<div class="modal fade" id="modalCrearCliente" tabindex="-1" aria-labelledby="modalCrearClienteLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="modalCrearClienteLabel">Registrar Nuevo Cliente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCrearCliente">
+                    {% csrf_token %}
+                    <div id="modal-errors" class="alert alert-danger d-none"></div>
+                    <div class="mb-3">
+                        <label for="modal_nombre" class="form-label">Razón Social</label>
+                        <input type="text" class="form-control" id="modal_nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modal_cedula" class="form-label">Cédula o RIF</label>
+                        <input type="text" class="form-control" id="modal_cedula" name="cedula" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modal_telefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="modal_telefono" name="telefono">
+                    </div>
+                    <div class="mb-3">
+                        <label for="modal_direccion" class="form-label">Dirección</label>
+                        <textarea class="form-control" id="modal_direccion" name="direccion" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modal_forma_despacho" class="form-label">Forma de Despacho</label>
+                        <select class="form-select" id="modal_forma_despacho" name="forma_despacho">
+                            <option value="en_tienda" selected>En Tienda</option>
+                            <option value="delivery">Delivery</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarCliente">Guardar Cliente</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
+<!-- jQuery (Necesario para Select2) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Select2 CSS y JS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<style>
+    .select2-container .select2-selection--single {
+        height: 38px;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem 0 0 0.375rem;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 36px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+</style>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const montoTrabajo = document.getElementById('id_monto_trabajo');
-        const montoRepuestos = document.getElementById('id_monto_repuestos');
+    document.addEventListener('DOMContentLoaded', function () {
+        // Inicializar Select2 en el campo cliente
+        $('#id_cliente').select2({
+            placeholder: "Seleccione o busque un cliente",
+            allowClear: true,
+            width: 'resolve'
+        });
+
+        // Fix para que Select2 ocupe el espacio correcto con input-group
+        $('#id_cliente').next('.select2-container').css('flex', '1 1 auto');
+        $('#id_cliente').next('.select2-container').css('width', '1%');
+
         const montoTotalDisplay = document.getElementById('monto_total_display');
 
         function calcularTotal() {
-            const trabajo = parseFloat(montoTrabajo.value) || 0;
-            const repuestos = parseFloat(montoRepuestos.value) || 0;
-            const total = trabajo + repuestos;
+            let total = 0;
+            // Sumar valores de repuestos
+            document.querySelectorAll('.repuesto-valor').forEach(input => {
+                const isDeleted = input.closest('.repuesto-form').querySelector('input[type="checkbox"][name$="-DELETE"]');
+                if (!(isDeleted && isDeleted.checked)) {
+                    total += parseFloat(input.value) || 0;
+                }
+            });
+            // Sumar valores de servicios
+            document.querySelectorAll('.servicio-valor').forEach(input => {
+                const isDeleted = input.closest('.servicio-form').querySelector('input[type="checkbox"][name$="-DELETE"]');
+                if (!(isDeleted && isDeleted.checked)) {
+                    total += parseFloat(input.value) || 0;
+                }
+            });
+            
             montoTotalDisplay.value = total.toFixed(2);
         }
 
-        // Calcular al cargar (para edición)
+        // Calcular al cargar
         calcularTotal();
 
-        // Calcular en tiempo real
-        montoTrabajo.addEventListener('input', calcularTotal);
-        montoRepuestos.addEventListener('input', calcularTotal);
+        // Delegar eventos de input y change para calcular el total en tiempo real
+        document.body.addEventListener('input', function(e) {
+            if (e.target.classList.contains('repuesto-valor') || e.target.classList.contains('servicio-valor')) {
+                calcularTotal();
+            }
+        });
+        document.body.addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox' && e.target.name.includes('DELETE')) {
+                calcularTotal();
+            }
+        });
+
+        // Lógica AJAX para Crear Cliente
+        const btnGuardarCliente = document.getElementById('btnGuardarCliente');
+        const formCrearCliente = document.getElementById('formCrearCliente');
+        const modalErrors = document.getElementById('modal-errors');
+
+        btnGuardarCliente.addEventListener('click', function () {
+            const formData = new FormData(formCrearCliente);
+
+            fetch("{% url 'api_cliente_crear' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Cerrar el modal
+                        const modalEl = document.getElementById('modalCrearCliente');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        modal.hide();
+
+                        // Limpiar formulario y errores
+                        formCrearCliente.reset();
+                        modalErrors.classList.add('d-none');
+
+                        // Agregar nueva opción a Select2 y seleccionarla
+                        const newOption = new Option(`${data.nombre} - ${data.cedula}`, data.id, true, true);
+                        $('#id_cliente').append(newOption).trigger('change');
+
+                        // Mostrar notificación de éxito
+                        Swal.fire({
+                            title: "¡Éxito!",
+                            text: "Cliente creado y seleccionado correctamente.",
+                            icon: "success",
+                            timer: 3000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        // Mostrar errores
+                        modalErrors.classList.remove('d-none');
+                        let htmlErrors = "<ul>";
+                        for (const [key, value] of Object.entries(data.errors)) {
+                            htmlErrors += `<li><strong>${key}</strong>: ${value}</li>`;
+                        }
+                        htmlErrors += "</ul>";
+                        modalErrors.innerHTML = htmlErrors;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    modalErrors.classList.remove('d-none');
+                    modalErrors.textContent = "Ocurrió un error en la solicitud.";
+                });
+        });
+
+        // Lógica Dinámica Formset (Máquinas)
+        const addBtn = document.getElementById('add-maquina-btn');
+        const totalForms = document.getElementById('id_maquinas-TOTAL_FORMS');
+        const container = document.getElementById('maquinas-container');
+        const emptyFormTemplate = document.getElementById('empty-form-template').innerHTML;
+
+        addBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const currentFormCount = parseInt(totalForms.value);
+            const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, currentFormCount);
+
+            container.insertAdjacentHTML('beforeend', newFormHtml);
+            totalForms.value = currentFormCount + 1;
+        });
+
+        // Lógica Dinámica Formset (Repuestos)
+        const addRepuestoBtn = document.getElementById('add-repuesto-btn');
+        const repuestosTotalForms = document.getElementById('id_repuestos-TOTAL_FORMS');
+        const repuestosContainer = document.getElementById('repuestos-container');
+        const emptyRepuestoTemplate = document.getElementById('empty-repuesto-template').innerHTML;
+
+        addRepuestoBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const currentCount = parseInt(repuestosTotalForms.value);
+            const newHtml = emptyRepuestoTemplate.replace(/__prefix__/g, currentCount);
+            repuestosContainer.insertAdjacentHTML('beforeend', newHtml);
+            repuestosTotalForms.value = currentCount + 1;
+        });
+
+        // Lógica Dinámica Formset (Servicios)
+        const addServicioBtn = document.getElementById('add-servicio-btn');
+        const serviciosTotalForms = document.getElementById('id_servicios-TOTAL_FORMS');
+        const serviciosContainer = document.getElementById('servicios-container');
+        const emptyServicioTemplate = document.getElementById('empty-servicio-template').innerHTML;
+
+        addServicioBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const currentCount = parseInt(serviciosTotalForms.value);
+            const newHtml = emptyServicioTemplate.replace(/__prefix__/g, currentCount);
+            serviciosContainer.insertAdjacentHTML('beforeend', newHtml);
+            serviciosTotalForms.value = currentCount + 1;
+        });
     });
 </script>
 {% endblock %}
