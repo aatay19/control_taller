@@ -18,8 +18,14 @@
                             <span class="fw-bold fs-6">{{ entrada.cliente.nombre }}</span>
                         </div>
                         <div class="col-md-4">
-                            <small class="text-muted d-block">Máquina</small>
-                            <span class="fw-bold fs-6">{{ entrada.modelo_maquina }}</span>
+                            <small class="text-muted d-block">Máquinas</small>
+                            <span class="fw-bold fs-6">
+                                {% for m in entrada.maquinas.all %}
+                                    {{ m.modelo }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    -
+                                {% endfor %}
+                            </span>
                         </div>
                         <div class="col-md-4">
                             <small class="text-muted d-block">Fecha de Ingreso</small>
@@ -31,12 +37,20 @@
 
                     <div class="row text-center">
                         <div class="col-md-3 mb-2">
-                            <small class="text-muted d-block">Monto del Trabajo</small>
-                            <span class="fw-bold fs-5">${{ entrada.monto_trabajo }}</span>
+                            <small class="text-muted d-block">Total Servicios</small>
+                            <span class="fw-bold fs-5">
+                                {% for s in entrada.servicios.all %}
+                                    <div class="small fw-normal">- {{ s.nombre }} (${{ s.valor }})</div>
+                                {% endfor %}
+                            </span>
                         </div>
                         <div class="col-md-3 mb-2">
-                            <small class="text-muted d-block">Monto de Repuestos</small>
-                            <span class="fw-bold fs-5">${{ entrada.monto_repuestos }}</span>
+                            <small class="text-muted d-block">Total Repuestos</small>
+                            <span class="fw-bold fs-5">
+                                {% for r in entrada.repuestos.all %}
+                                    <div class="small fw-normal">- {{ r.nombre }} (${{ r.valor }})</div>
+                                {% endfor %}
+                            </span>
                         </div>
                         <div class="col-md-3 mb-2">
                             <small class="text-muted d-block">Monto Total del Servicio</small>
@@ -70,7 +84,7 @@
                             <span class="fw-bold fs-6" id="resumen-cliente">-</span>
                         </div>
                         <div class="col-md-4">
-                            <small class="text-muted d-block">Máquina</small>
+                            <small class="text-muted d-block">Máquinas</small>
                             <span class="fw-bold fs-6" id="resumen-maquina">-</span>
                         </div>
                         <div class="col-md-4">
@@ -83,12 +97,12 @@
 
                     <div class="row text-center">
                         <div class="col-md-3 mb-2">
-                            <small class="text-muted d-block">Monto del Trabajo</small>
-                            <span class="fw-bold fs-5" id="resumen-trabajo">$0.00</span>
+                            <small class="text-muted d-block">Servicios</small>
+                            <span class="fw-bold fs-5" id="resumen-trabajo">-</span>
                         </div>
                         <div class="col-md-3 mb-2">
-                            <small class="text-muted d-block">Monto de Repuestos</small>
-                            <span class="fw-bold fs-5" id="resumen-repuestos">$0.00</span>
+                            <small class="text-muted d-block">Repuestos</small>
+                            <span class="fw-bold fs-5" id="resumen-repuestos">-</span>
                         </div>
                         <div class="col-md-3 mb-2">
                             <small class="text-muted d-block">Monto Total del Servicio</small>
@@ -131,21 +145,44 @@
                             </div>
                         {% endif %}
 
-                        <!-- Pago Final -->
-                        <div class="mb-3">
-                            <label for="{{ form.pago_final.id_for_label }}" class="form-label fw-semibold">
-                                <i class="bi bi-cash-coin me-1"></i>Pago Final para Completar la Entrega
-                            </label>
-                            {{ form.pago_final }}
-                            {% if form.pago_final.errors %}
-                                <div class="text-danger small mt-1">{{ form.pago_final.errors }}</div>
-                            {% endif %}
-                            <small class="text-muted" id="pago-sugerido-wrapper" style="display: none;">
-                                Monto sugerido: $<span id="pago-sugerido-monto">0.00</span> (saldo pendiente)
-                            </small>
-                            {% if entrada %}
-                                <small class="text-muted">Monto sugerido: ${{ entrada.total_general }} (saldo pendiente)</small>
-                            {% endif %}
+                        <div class="row">
+                            <!-- Pago Final -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.pago_final.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="bi bi-cash-coin me-1"></i>Pago Restante
+                                </label>
+                                {{ form.pago_final }}
+                                {% if form.pago_final.errors %}
+                                    <div class="text-danger small mt-1">{{ form.pago_final.errors }}</div>
+                                {% endif %}
+                                <small class="text-muted" id="pago-sugerido-wrapper" style="display: none;">
+                                    Sugerido: $<span id="pago-sugerido-monto">0.00</span>
+                                </small>
+                                {% if entrada %}
+                                    <small class="text-muted">Sugerido: ${{ entrada.total_general }}</small>
+                                {% endif %}
+                            </div>
+
+                            <!-- Forma de Pago Salida -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.forma_pago_salida.id_for_label }}" class="form-label fw-semibold">Forma de Pago</label>
+                                {{ form.forma_pago_salida }}
+                                {% if form.forma_pago_salida.errors %}
+                                    <div class="text-danger small mt-1">{{ form.forma_pago_salida.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Tasa del Día -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.tasa_dia_salida.id_for_label }}" class="form-label fw-semibold">Tasa del Día</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Bs</span>
+                                    {{ form.tasa_dia_salida }}
+                                </div>
+                                {% if form.tasa_dia_salida.errors %}
+                                    <div class="text-danger small mt-1">{{ form.tasa_dia_salida.errors }}</div>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <!-- Observaciones -->
@@ -197,10 +234,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(data => {
                     document.getElementById('resumen-cliente').textContent = data.cliente_nombre;
-                    document.getElementById('resumen-maquina').textContent = data.modelo_maquina;
+                    document.getElementById('resumen-maquina').textContent = data.maquinas || '-';
                     document.getElementById('resumen-fecha').textContent = data.fecha;
-                    document.getElementById('resumen-trabajo').textContent = `$${data.monto_trabajo}`;
-                    document.getElementById('resumen-repuestos').textContent = `$${data.monto_repuestos}`;
+                    
+                    // Mostrar resumen básico
+                    document.getElementById('resumen-trabajo').textContent = data.servicios ? data.servicios.length + ' item(s)' : '-';
+                    document.getElementById('resumen-repuestos').textContent = data.repuestos ? data.repuestos.length + ' item(s)' : '-';
                     document.getElementById('resumen-total').textContent = `$${data.total}`;
                     document.getElementById('resumen-abono').textContent = `$${data.abono}`;
                     document.getElementById('resumen-saldo').textContent = `$${data.total_general}`;

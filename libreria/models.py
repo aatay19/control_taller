@@ -63,12 +63,27 @@ class Entrada(models.Model):
         ('entregado', 'Entregado'),
     ]
 
+    MODALIDAD_PAGO_CHOICES = [
+        ('un_abono', 'En un solo abono'),
+        ('dos_abonos', 'En dos abonos extras'),
+    ]
+
+    FORMA_PAGO_CHOICES = [
+        ('efectivo', 'Efectivo'),
+        ('pago_movil', 'Pago Móvil'),
+        ('transferencia', 'Transferencia'),
+        ('zelle', 'Zelle'),
+    ]
+
     fecha = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Entrada")
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='entradas', verbose_name="Cliente")
     cliente_presente = models.BooleanField(default=False, verbose_name="¿Cliente está presente?")
     observaciones = models.TextField(verbose_name="Observaciones o Repuestos que lleva")
 
     abono = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Abono")
+    forma_pago_abono = models.CharField(max_length=50, choices=FORMA_PAGO_CHOICES, default='efectivo', verbose_name="Forma de Pago del Abono")
+    tasa_dia = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Tasa del Día")
+    modalidad_pago_restante = models.CharField(max_length=50, choices=MODALIDAD_PAGO_CHOICES, default='un_abono', verbose_name="Modalidad Pago Restante")
 
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='en_taller', verbose_name="Estado")
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Registrado por")
@@ -94,9 +109,18 @@ class Entrada(models.Model):
 
 
 class Salida(models.Model):
+    FORMA_PAGO_CHOICES = [
+        ('efectivo', 'Efectivo'),
+        ('pago_movil', 'Pago Móvil'),
+        ('transferencia', 'Transferencia'),
+        ('zelle', 'Zelle'),
+    ]
+
     entrada = models.OneToOneField(Entrada, on_delete=models.CASCADE, related_name='salida_rel', verbose_name="Entrada Asociada")
     fecha_entrega = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Entrega")
     pago_final = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Pago Final Realizado")
+    forma_pago_salida = models.CharField(max_length=50, choices=FORMA_PAGO_CHOICES, default='efectivo', verbose_name="Forma de Pago")
+    tasa_dia_salida = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Tasa del Día")
     observaciones_entrega = models.TextField(blank=True, verbose_name="Observaciones de Entrega")
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Entregado por")
 

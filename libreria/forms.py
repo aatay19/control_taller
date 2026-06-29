@@ -22,12 +22,15 @@ class ClienteForm(forms.ModelForm):
 class EntradaForm(forms.ModelForm):
     class Meta:
         model = Entrada
-        fields = ['cliente', 'cliente_presente', 'observaciones', 'abono']
+        fields = ['cliente', 'cliente_presente', 'observaciones', 'abono', 'forma_pago_abono', 'tasa_dia', 'modalidad_pago_restante']
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-select'}),
             'cliente_presente': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'abono': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'forma_pago_abono': forms.Select(attrs={'class': 'form-select'}),
+            'tasa_dia': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'modalidad_pago_restante': forms.Select(attrs={'class': 'form-select'}),
         }
 
 MaquinaFormSet = inlineformset_factory(
@@ -69,9 +72,11 @@ ServicioFormSet = inlineformset_factory(
 class SalidaForm(forms.ModelForm):
     class Meta:
         model = Salida
-        fields = ['entrada', 'pago_final', 'observaciones_entrega']
+        fields = ['entrada', 'pago_final', 'forma_pago_salida', 'tasa_dia_salida', 'observaciones_entrega']
         widgets = {
             'entrada': forms.Select(attrs={'class': 'form-select', 'readonly': 'readonly'}),
             'pago_final': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'forma_pago_salida': forms.Select(attrs={'class': 'form-select'}),
+            'tasa_dia_salida': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'observaciones_entrega': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }

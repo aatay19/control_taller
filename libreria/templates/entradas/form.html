@@ -100,14 +100,13 @@
                         <!-- Observaciones -->
                         <div class="mb-3">
                             <label for="{{ form.observaciones.id_for_label }}"
-                                class="form-label fw-semibold">Observaciones o Repuestos que lleva</label>
+                                class="form-label fw-semibold">Observaciones </label>
                             {{ form.observaciones }}
                             {% if form.observaciones.errors %}
                             <div class="text-danger small mt-1">{{ form.observaciones.errors }}</div>
                             {% endif %}
                         </div>
 
-                        <hr class="my-4">
                         <hr class="my-4">
                         <h5 class="mb-3"><i class="bi bi-tools me-1"></i>Repuestos y Servicios</h5>
 
@@ -233,15 +232,53 @@
                             <small class="text-muted">Se calcula automáticamente al sumar los Repuestos y Servicios.</small>
                         </div>
 
-                        <hr class="my-3">
+                        <hr class="my-4">
+                        <h5 class="mb-3"><i class="bi bi-wallet2 me-1"></i>Información de Pago</h5>
 
-                        <!-- Abono -->
-                        <div class="mb-3">
-                            <label for="{{ form.abono.id_for_label }}" class="form-label fw-semibold">Abono</label>
-                            {{ form.abono }}
-                            {% if form.abono.errors %}
-                            <div class="text-danger small mt-1">{{ form.abono.errors }}</div>
-                            {% endif %}
+                        <div class="row">
+                            <!-- Abono -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.abono.id_for_label }}" class="form-label fw-semibold">Abono Inicial</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.abono }}
+                                </div>
+                                {% if form.abono.errors %}
+                                <div class="text-danger small mt-1">{{ form.abono.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Forma de Pago Abono -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.forma_pago_abono.id_for_label }}" class="form-label fw-semibold">Forma de Pago (Abono)</label>
+                                {{ form.forma_pago_abono }}
+                                {% if form.forma_pago_abono.errors %}
+                                <div class="text-danger small mt-1">{{ form.forma_pago_abono.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Tasa del Día -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.tasa_dia.id_for_label }}" class="form-label fw-semibold">Tasa del Día</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Bs</span>
+                                    {{ form.tasa_dia }}
+                                </div>
+                                {% if form.tasa_dia.errors %}
+                                <div class="text-danger small mt-1">{{ form.tasa_dia.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Modalidad Pago Restante -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.modalidad_pago_restante.id_for_label }}" class="form-label fw-semibold">Acuerdo de Pago (Restante)</label>
+                                {{ form.modalidad_pago_restante }}
+                                {% if form.modalidad_pago_restante.errors %}
+                                <div class="text-danger small mt-1">{{ form.modalidad_pago_restante.errors }}</div>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-end mt-4">
@@ -375,8 +412,6 @@
                 calcularTotal();
             }
         });
-
-        // Lógica AJAX para Crear Cliente
         const btnGuardarCliente = document.getElementById('btnGuardarCliente');
         const formCrearCliente = document.getElementById('formCrearCliente');
         const modalErrors = document.getElementById('modal-errors');
