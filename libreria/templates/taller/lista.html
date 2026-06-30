@@ -94,11 +94,16 @@
                     <option value="pago_movil">Pago Móvil</option>
                     <option value="transferencia">Transferencia</option>
                     <option value="zelle">Zelle</option>
+                    <option value="t_debito">T. Débito</option>
                 </select>
             </div>
             <div class="mb-3">
                 <label for="abono_extra_tasa" class="form-label">Tasa del Día (Bs)</label>
                 <input type="number" step="0.01" class="form-control" id="abono_extra_tasa" required>
+            </div>
+            <div class="mb-3">
+                <label for="abono_extra_observacion" class="form-label">Observación (Opcional)</label>
+                <textarea class="form-control" id="abono_extra_observacion" rows="2" placeholder="Ej. Referencia..."></textarea>
             </div>
         </form>
       </div>
@@ -129,6 +134,7 @@
         document.getElementById('abono_extra_monto').value = '';
         document.getElementById('abono_extra_tasa').value = '0';
         document.getElementById('abono_extra_forma').value = 'efectivo';
+        document.getElementById('abono_extra_observacion').value = '';
         
         modalAbonoExtra.show();
     }
@@ -138,6 +144,7 @@
         const monto = document.getElementById('abono_extra_monto').value;
         const forma = document.getElementById('abono_extra_forma').value;
         const tasa = document.getElementById('abono_extra_tasa').value;
+        const observacion = document.getElementById('abono_extra_observacion').value;
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         if (!monto || parseFloat(monto) <= 0) {
@@ -154,7 +161,8 @@
             body: JSON.stringify({
                 abono_extra: monto,
                 forma_pago_abono_extra: forma,
-                tasa_dia_abono_extra: tasa
+                tasa_dia_abono_extra: tasa,
+                observacion_abono_extra: observacion
             })
         })
         .then(response => response.json())

@@ -22,11 +22,12 @@ class ClienteForm(forms.ModelForm):
 class EntradaForm(forms.ModelForm):
     class Meta:
         model = Entrada
-        fields = ['cliente', 'cliente_presente', 'observaciones', 'abono', 'forma_pago_abono', 'tasa_dia', 'modalidad_pago_restante']
+        fields = ['cliente', 'cliente_presente', 'observaciones', 'observacion_pago', 'abono', 'forma_pago_abono', 'tasa_dia', 'modalidad_pago_restante']
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-select'}),
             'cliente_presente': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'observacion_pago': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Ej. Referencia de transferencia...'}),
             'abono': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'forma_pago_abono': forms.Select(attrs={'class': 'form-select'}),
             'tasa_dia': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),

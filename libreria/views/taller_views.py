@@ -195,10 +195,12 @@ def taller_abono_extra(request, id):
             abono_extra = Decimal(str(data.get('abono_extra', 0)))
             forma_pago = data.get('forma_pago_abono_extra', 'efectivo')
             tasa_dia = Decimal(str(data.get('tasa_dia_abono_extra', 0)))
+            observacion_abono_extra = data.get('observacion_abono_extra', '')
             
             entrada.abono_extra = abono_extra
             entrada.forma_pago_abono_extra = forma_pago
             entrada.tasa_dia_abono_extra = tasa_dia
+            entrada.observacion_abono_extra = observacion_abono_extra
             entrada.save()
             
             return JsonResponse({'success': True, 'total_general': entrada.total_general})

@@ -73,12 +73,14 @@ class Entrada(models.Model):
         ('pago_movil', 'Pago Móvil'),
         ('transferencia', 'Transferencia'),
         ('zelle', 'Zelle'),
+        ('t_debito', 'T. Débito'),
     ]
 
     fecha = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Entrada")
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='entradas', verbose_name="Cliente")
     cliente_presente = models.BooleanField(default=False, verbose_name="¿Cliente está presente?")
     observaciones = models.TextField(verbose_name="Observaciones o Repuestos que lleva")
+    observacion_pago = models.TextField(blank=True, null=True, verbose_name="Observación del Pago")
 
     abono = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Abono")
     forma_pago_abono = models.CharField(max_length=50, choices=FORMA_PAGO_CHOICES, default='efectivo', verbose_name="Forma de Pago del Abono")
@@ -88,6 +90,7 @@ class Entrada(models.Model):
     abono_extra = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Abono Extra")
     forma_pago_abono_extra = models.CharField(max_length=50, choices=FORMA_PAGO_CHOICES, default='efectivo', verbose_name="Forma de Pago del Abono Extra")
     tasa_dia_abono_extra = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Tasa del Día (Abono Extra)")
+    observacion_abono_extra = models.TextField(blank=True, null=True, verbose_name="Observación del Abono Extra")
 
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='en_taller', verbose_name="Estado")
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Registrado por")
@@ -118,6 +121,7 @@ class Salida(models.Model):
         ('pago_movil', 'Pago Móvil'),
         ('transferencia', 'Transferencia'),
         ('zelle', 'Zelle'),
+        ('t_debito', 'T. Débito'),
     ]
 
     entrada = models.OneToOneField(Entrada, on_delete=models.CASCADE, related_name='salida_rel', verbose_name="Entrada Asociada")
