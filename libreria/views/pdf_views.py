@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from libreria.models import Entrada
+from libreria.models import Entrada, Salida
 from fpdf import FPDF
 
 
@@ -77,6 +77,43 @@ class EntradaPDF(FPDF):
         self.cell(0, 7, str(value), new_x="LMARGIN", new_y="NEXT")
 
 
+class SalidaPDF(FPDF):
+    """PDF personalizado para el comprobante de entrega."""
+
+    def header(self):
+        self.set_font('Helvetica', 'B', 18)
+        self.set_text_color(31, 41, 55)
+        self.cell(0, 12, 'COMPROBANTE DE ENTREGA', align='C', new_x="LMARGIN", new_y="NEXT")
+        self.set_font('Helvetica', '', 10)
+        self.set_text_color(107, 114, 128)
+        self.cell(0, 6, 'Taller de Costura - Control de Servicio', align='C', new_x="LMARGIN", new_y="NEXT")
+        self.ln(4)
+        self.set_draw_color(209, 213, 219)
+        self.set_line_width(0.5)
+        self.line(10, self.get_y(), 200, self.get_y())
+        self.ln(6)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Helvetica', 'I', 8)
+        self.set_text_color(156, 163, 175)
+        self.cell(0, 10, f'Pagina {self.page_no()}', align='C')
+
+    def add_section_title(self, title):
+        self.set_font('Helvetica', 'B', 12)
+        self.set_text_color(59, 130, 246)
+        self.cell(0, 8, title, new_x="LMARGIN", new_y="NEXT")
+        self.ln(2)
+
+    def add_field(self, label, value, bold_value=False):
+        self.set_font('Helvetica', 'B', 10)
+        self.set_text_color(55, 65, 81)
+        self.cell(60, 7, f'{label}:', new_x="END")
+        self.set_font('Helvetica', 'B' if bold_value else '', 10)
+        self.set_text_color(17, 24, 39)
+        self.cell(0, 7, str(value), new_x="LMARGIN", new_y="NEXT")
+
+
 @login_required
 def entrada_pdf(request, id):
     """Genera PDF de la entrada, opcionalmente con imagen de talonario adjunta."""
@@ -111,7 +148,7 @@ def entrada_pdf(request, id):
     pdf.ln(2)
 
     # Observaciones
-    pdf.add_section_title('Observaciones / Repuestos')
+    pdf.add_section_title('Observaciones')
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(55, 65, 81)
     pdf.multi_cell(0, 6, entrada.observaciones or '-')
@@ -208,4 +245,101 @@ def entrada_pdf(request, id):
     pdf_bytes = bytes(pdf.output())
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="entrada_{entrada.id}.pdf"'
+    return response
+
+
+@login_required
+def salida_pdf(request, id):
+    """Genera PDF del comprobante de entrega/salida."""
+    salida = get_object_or_404(Salida, id=id)
+    entrada = salida.entrada
+
+    pdf = SalidaPDF()
+    pdf.add_page()
+
+    # Encabezado de salida
+    pdf.set_font('Helvetica', 'B', 11)
+    pdf.set_text_color(17, 24, 39)
+    pdf.cell(95, 7, f'Comprobante de Entrega No. {salida.id}', new_x="END")
+    pdf.set_font('Helvetica', '', 10)
+    pdf.set_text_color(107, 114, 128)
+    pdf.cell(0, 7, f'Fecha: {timezone.localtime(salida.fecha_entrega).strftime("%d/%m/%Y %H:%M")}', align='R', new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(4)
+
+    # Datos del cliente
+    pdf.add_section_title('Datos del Cliente')
+    pdf.add_field('Nombre', entrada.cliente.nombre)
+    pdf.add_field('Cedula', entrada.cliente.cedula)
+    pdf.add_field('Telefono', entrada.cliente.telefono or '-')
+    pdf.ln(4)
+
+    # Datos de la maquina
+    pdf.add_section_title('Equipo Entregado')
+    maquinas_str = ", ".join([f"{m.modelo} (Ser: {m.serial})" if m.serial else m.modelo for m in entrada.maquinas.all()])
+    pdf.add_field('Modelos/Seriales', maquinas_str or '-')
+    pdf.ln(4)
+
+    # Resumen financiero
+    pdf.add_section_title('Resumen de Pagos')
+
+    total_servicios = sum(s.valor for s in entrada.servicios.all())
+    total_repuestos = sum(r.valor for r in entrada.repuestos.all())
+
+    pdf.add_field('Total Trabajo (Servicios + Repuestos)', f'$ {entrada.total}')
+
+    pdf.set_draw_color(229, 231, 235)
+    pdf.line(10, pdf.get_y() + 1, 200, pdf.get_y() + 1)
+    pdf.ln(4)
+
+    forma_pago_abono = entrada.get_forma_pago_abono_display() if hasattr(entrada, 'get_forma_pago_abono_display') else '-'
+    pdf.add_field('Abono Inicial', f'$ {entrada.abono} ({forma_pago_abono}) - Tasa: Bs {entrada.tasa_dia}')
+
+    if entrada.abono_extra > 0:
+        forma_pago_extra = entrada.get_forma_pago_abono_extra_display() if hasattr(entrada, 'get_forma_pago_abono_extra_display') else '-'
+        pdf.add_field('Abono Extra', f'$ {entrada.abono_extra} ({forma_pago_extra}) - Tasa: Bs {entrada.tasa_dia_abono_extra}')
+        if getattr(entrada, 'observacion_abono_extra', None):
+            pdf.set_font('Helvetica', 'I', 9)
+            pdf.set_text_color(107, 114, 128)
+            pdf.multi_cell(0, 5, f'  Obs: {entrada.observacion_abono_extra}')
+
+    forma_pago_salida = salida.get_forma_pago_salida_display() if hasattr(salida, 'get_forma_pago_salida_display') else '-'
+    pdf.add_field('Pago Final', f'$ {salida.pago_final} ({forma_pago_salida}) - Tasa: Bs {salida.tasa_dia_salida}')
+
+    pdf.ln(3)
+    pdf.set_draw_color(34, 197, 94)
+    pdf.set_line_width(0.8)
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(4)
+
+    pdf.set_font('Helvetica', 'B', 12)
+    pdf.set_text_color(21, 128, 61)
+    total_cobrado = entrada.abono + entrada.abono_extra + salida.pago_final
+    pdf.cell(0, 8, f'TOTAL COBRADO: $ {total_cobrado}', new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(4)
+
+    # Observaciones de entrega
+    if salida.observaciones_entrega:
+        pdf.add_section_title('Observaciones de Entrega')
+        pdf.set_font('Helvetica', '', 10)
+        pdf.set_text_color(55, 65, 81)
+        pdf.multi_cell(0, 6, salida.observaciones_entrega)
+        pdf.ln(4)
+
+    # Garantia
+    if salida.garantia:
+        pdf.add_section_title('Garantia')
+        pdf.set_font('Helvetica', '', 10)
+        pdf.set_text_color(55, 65, 81)
+        pdf.multi_cell(0, 6, salida.garantia)
+        pdf.ln(4)
+
+    # Pie de página informativo
+    pdf.set_font('Helvetica', 'I', 9)
+    pdf.set_text_color(156, 163, 175)
+    usuario_nombre = salida.usuario.username if salida.usuario else '-'
+    pdf.cell(0, 7, f'Entregado por: {usuario_nombre}  |  Entrada No. {entrada.id}', new_x="LMARGIN", new_y="NEXT")
+
+    pdf_bytes = bytes(pdf.output())
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="salida_{salida.id}.pdf"'
     return response

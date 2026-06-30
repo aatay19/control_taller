@@ -26,5 +26,6 @@ urlpatterns = [
     path('salidas/', views.salidas_lista, name='salidas_lista'),
     path('salidas/crear/', views.salida_crear, name='salida_crear'),
     path('salidas/crear/<int:entrada_id>/', views.salida_crear, name='salida_crear_con_entrada'),
+    path('salidas/<int:id>/pdf/', views.salida_pdf, name='salida_pdf'),
 ]
 

@@ -253,6 +253,9 @@ def salida_crear(request, entrada_id=None):
             salida = form.save(commit=False)
             salida.usuario = request.user
             salida.save()
+            # If AJAX request, return JSON with the new salida ID
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.META.get('HTTP_ACCEPT', '').find('application/json') != -1:
+                return JsonResponse({'success': True, 'salida_id': salida.id})
             messages.success(request, 'Salida registrada correctamente.')
             return redirect('salidas_lista')
     else:

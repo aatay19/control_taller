@@ -83,10 +83,13 @@
                         </td>
                         <td>{{ salida.usuario.username|default:"-" }}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-info" title="Ver detalle"
+                            <button class="btn btn-sm btn-outline-info me-1" title="Ver detalle"
                                 onclick="verDetalleSalida({{ salida.id }})">
                                 <i class="bi bi-eye"></i> Ver
                             </button>
+                            <a href="{% url 'salida_pdf' salida.id %}" class="btn btn-sm btn-outline-danger" title="Descargar PDF">
+                                <i class="bi bi-file-earmark-pdf"></i> PDF
+                            </a>
                         </td>
                     </tr>
                     {% empty %}
