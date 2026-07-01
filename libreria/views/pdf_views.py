@@ -263,7 +263,8 @@ def salida_pdf(request, id):
     pdf.cell(95, 7, f'Comprobante de Entrega No. {salida.id}', new_x="END")
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(107, 114, 128)
-    pdf.cell(0, 7, f'Fecha: {timezone.localtime(salida.fecha_entrega).strftime("%d/%m/%Y %H:%M")}', align='R', new_x="LMARGIN", new_y="NEXT")
+    fecha_entrega_str = salida.fecha_entrega.strftime('%d/%m/%Y') if salida.fecha_entrega else '-'
+    pdf.cell(0, 7, f'Fecha de Entrega: {fecha_entrega_str}', align='R', new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
     # Datos del cliente
@@ -293,17 +294,32 @@ def salida_pdf(request, id):
 
     forma_pago_abono = entrada.get_forma_pago_abono_display() if hasattr(entrada, 'get_forma_pago_abono_display') else '-'
     pdf.add_field('Abono Inicial', f'$ {entrada.abono} ({forma_pago_abono}) - Tasa: Bs {entrada.tasa_dia}')
+    if getattr(entrada, 'observacion_pago', None):
+        pdf.set_font('Helvetica', 'I', 9)
+        pdf.set_text_color(107, 114, 128)
+        pdf.set_x(pdf.l_margin)
+        pdf.multi_cell(0, 5, f'  Obs: {entrada.observacion_pago}')
 
     if entrada.abono_extra > 0:
         forma_pago_extra = entrada.get_forma_pago_abono_extra_display() if hasattr(entrada, 'get_forma_pago_abono_extra_display') else '-'
+        pdf.set_x(pdf.l_margin)
         pdf.add_field('Abono Extra', f'$ {entrada.abono_extra} ({forma_pago_extra}) - Tasa: Bs {entrada.tasa_dia_abono_extra}')
         if getattr(entrada, 'observacion_abono_extra', None):
             pdf.set_font('Helvetica', 'I', 9)
             pdf.set_text_color(107, 114, 128)
+            pdf.set_x(pdf.l_margin)
             pdf.multi_cell(0, 5, f'  Obs: {entrada.observacion_abono_extra}')
 
     forma_pago_salida = salida.get_forma_pago_salida_display() if hasattr(salida, 'get_forma_pago_salida_display') else '-'
-    pdf.add_field('Pago Final', f'$ {salida.pago_final} ({forma_pago_salida}) - Tasa: Bs {salida.tasa_dia_salida}')
+    pdf.set_x(pdf.l_margin)
+    pdf.add_field('Pago Final', f'$ {salida.pago_final} ({forma_pago_salida})')
+    pdf.set_x(pdf.l_margin)
+    pdf.add_field('Tasa (Pago Final)', f'Bs {salida.tasa_dia_salida}')
+    if getattr(salida, 'observacion_pago_final', None):
+        pdf.set_font('Helvetica', 'I', 9)
+        pdf.set_text_color(107, 114, 128)
+        pdf.set_x(pdf.l_margin)
+        pdf.multi_cell(0, 5, f'  Obs: {salida.observacion_pago_final}')
 
     pdf.ln(3)
     pdf.set_draw_color(34, 197, 94)

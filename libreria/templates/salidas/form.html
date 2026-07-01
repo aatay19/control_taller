@@ -87,8 +87,19 @@
                         {% endif %}
 
                         <div class="row">
+                            <!-- Fecha de Entrega -->
+                            <div class="col-md-3 mb-3">
+                                <label for="{{ form.fecha_entrega.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Entrega
+                                </label>
+                                {{ form.fecha_entrega }}
+                                {% if form.fecha_entrega.errors %}
+                                    <div class="text-danger small mt-1">{{ form.fecha_entrega.errors }}</div>
+                                {% endif %}
+                            </div>
+
                             <!-- Pago Final -->
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label for="{{ form.pago_final.id_for_label }}" class="form-label fw-semibold">
                                     <i class="bi bi-cash-coin me-1"></i>Pago Restante
                                 </label>
@@ -102,7 +113,7 @@
                             </div>
 
                             <!-- Forma de Pago Salida -->
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label for="{{ form.forma_pago_salida.id_for_label }}" class="form-label fw-semibold">Forma de Pago</label>
                                 {{ form.forma_pago_salida }}
                                 {% if form.forma_pago_salida.errors %}
@@ -111,7 +122,7 @@
                             </div>
 
                             <!-- Tasa del Día -->
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label for="{{ form.tasa_dia_salida.id_for_label }}" class="form-label fw-semibold">Tasa del Día</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Bs</span>
@@ -121,6 +132,17 @@
                                     <div class="text-danger small mt-1">{{ form.tasa_dia_salida.errors }}</div>
                                 {% endif %}
                             </div>
+                        </div>
+
+                        <!-- Observación del Pago Final -->
+                        <div class="mb-3">
+                            <label for="{{ form.observacion_pago_final.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-chat-left-text me-1"></i>Observación del Pago Final
+                            </label>
+                            {{ form.observacion_pago_final }}
+                            {% if form.observacion_pago_final.errors %}
+                                <div class="text-danger small mt-1">{{ form.observacion_pago_final.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <!-- Observaciones -->

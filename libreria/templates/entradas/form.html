@@ -125,9 +125,13 @@
                                     {% for repuesto_form in repuesto_formset %}
                                     <div class="repuesto-form row mb-2 align-items-center">
                                         {% if repuesto_form.instance.pk %}{{ repuesto_form.id }}{% endif %}
-                                        <div class="col-md-7">
+                                        <div class="col-md-5">
                                             <label class="form-label d-md-none fw-semibold">Nombre del Repuesto</label>
                                             {{ repuesto_form.nombre }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label d-md-none fw-semibold">Cant.</label>
+                                            {{ repuesto_form.cantidad }}
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label d-md-none fw-semibold">Valor</label>
@@ -147,8 +151,11 @@
                                 <!-- Template hidden for Repuestos -->
                                 <div id="empty-repuesto-template" class="d-none">
                                     <div class="repuesto-form row mb-2 align-items-center">
-                                        <div class="col-md-7">
+                                        <div class="col-md-5">
                                             {{ repuesto_formset.empty_form.nombre }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            {{ repuesto_formset.empty_form.cantidad }}
                                         </div>
                                         <div class="col-md-4">
                                             <div class="input-group">
@@ -180,9 +187,13 @@
                                     {% for servicio_form in servicio_formset %}
                                     <div class="servicio-form row mb-2 align-items-center">
                                         {% if servicio_form.instance.pk %}{{ servicio_form.id }}{% endif %}
-                                        <div class="col-md-7">
+                                        <div class="col-md-5">
                                             <label class="form-label d-md-none fw-semibold">Nombre del Servicio</label>
                                             {{ servicio_form.nombre }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label d-md-none fw-semibold">Cant.</label>
+                                            {{ servicio_form.cantidad }}
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label d-md-none fw-semibold">Valor</label>
@@ -202,8 +213,11 @@
                                 <!-- Template hidden for Servicios -->
                                 <div id="empty-servicio-template" class="d-none">
                                     <div class="servicio-form row mb-2 align-items-center">
-                                        <div class="col-md-7">
+                                        <div class="col-md-5">
                                             {{ servicio_formset.empty_form.nombre }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            {{ servicio_formset.empty_form.cantidad }}
                                         </div>
                                         <div class="col-md-4">
                                             <div class="input-group">
@@ -238,7 +252,7 @@
 
                         <div class="row">
                             <!-- Abono -->
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label for="{{ form.abono.id_for_label }}" class="form-label fw-semibold">Abono Inicial</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
@@ -249,9 +263,18 @@
                                 {% endif %}
                             </div>
 
+                            <!-- Fecha Abono Inicial -->
+                            <div class="col-md-3 mb-3">
+                                <label for="{{ form.fecha_abono_inicial.id_for_label }}" class="form-label fw-semibold">Fecha Abono Inicial</label>
+                                {{ form.fecha_abono_inicial }}
+                                {% if form.fecha_abono_inicial.errors %}
+                                <div class="text-danger small mt-1">{{ form.fecha_abono_inicial.errors }}</div>
+                                {% endif %}
+                            </div>
+
                             <!-- Forma de Pago Abono -->
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.forma_pago_abono.id_for_label }}" class="form-label fw-semibold">Forma de Pago (Abono)</label>
+                            <div class="col-md-3 mb-3">
+                                <label for="{{ form.forma_pago_abono.id_for_label }}" class="form-label fw-semibold">Forma Pago</label>
                                 {{ form.forma_pago_abono }}
                                 {% if form.forma_pago_abono.errors %}
                                 <div class="text-danger small mt-1">{{ form.forma_pago_abono.errors }}</div>
@@ -259,7 +282,7 @@
                             </div>
 
                             <!-- Tasa del Día -->
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label for="{{ form.tasa_dia.id_for_label }}" class="form-label fw-semibold">Tasa del Día</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Bs</span>
@@ -270,7 +293,6 @@
                                 {% endif %}
                             </div>
                         </div>
-
                         <div class="row">
                             <!-- Modalidad Pago Restante -->
                             <div class="col-md-6 mb-3">
@@ -391,17 +413,25 @@
         function calcularTotal() {
             let total = 0;
             // Sumar valores de repuestos
-            document.querySelectorAll('.repuesto-valor').forEach(input => {
-                const isDeleted = input.closest('.repuesto-form').querySelector('input[type="checkbox"][name$="-DELETE"]');
+            document.querySelectorAll('.repuesto-form').forEach(form => {
+                const isDeleted = form.querySelector('input[type="checkbox"][name$="-DELETE"]');
                 if (!(isDeleted && isDeleted.checked)) {
-                    total += parseFloat(input.value) || 0;
+                    const valorInput = form.querySelector('.repuesto-valor');
+                    const cantidadInput = form.querySelector('.repuesto-cantidad');
+                    const valor = parseFloat(valorInput ? valorInput.value : 0) || 0;
+                    const cantidad = parseInt(cantidadInput ? cantidadInput.value : 1) || 1;
+                    total += valor; // Repuesto ya no se multiplica por cantidad
                 }
             });
             // Sumar valores de servicios
-            document.querySelectorAll('.servicio-valor').forEach(input => {
-                const isDeleted = input.closest('.servicio-form').querySelector('input[type="checkbox"][name$="-DELETE"]');
+            document.querySelectorAll('.servicio-form').forEach(form => {
+                const isDeleted = form.querySelector('input[type="checkbox"][name$="-DELETE"]');
                 if (!(isDeleted && isDeleted.checked)) {
-                    total += parseFloat(input.value) || 0;
+                    const valorInput = form.querySelector('.servicio-valor');
+                    const cantidadInput = form.querySelector('.servicio-cantidad');
+                    const valor = parseFloat(valorInput ? valorInput.value : 0) || 0;
+                    const cantidad = parseInt(cantidadInput ? cantidadInput.value : 1) || 1;
+                    total += valor * cantidad;
                 }
             });
             
@@ -413,7 +443,8 @@
 
         // Delegar eventos de input y change para calcular el total en tiempo real
         document.body.addEventListener('input', function(e) {
-            if (e.target.classList.contains('repuesto-valor') || e.target.classList.contains('servicio-valor')) {
+            if (e.target.classList.contains('repuesto-valor') || e.target.classList.contains('repuesto-cantidad') || 
+                e.target.classList.contains('servicio-valor') || e.target.classList.contains('servicio-cantidad')) {
                 calcularTotal();
             }
         });

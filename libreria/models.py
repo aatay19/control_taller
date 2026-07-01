@@ -83,11 +83,13 @@ class Entrada(models.Model):
     observacion_pago = models.TextField(blank=True, null=True, verbose_name="Observación del Pago")
 
     abono = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Abono")
+    fecha_abono_inicial = models.DateField(null=True, blank=True, verbose_name="Fecha del Abono Inicial")
     forma_pago_abono = models.CharField(max_length=50, choices=FORMA_PAGO_CHOICES, default='efectivo', verbose_name="Forma de Pago del Abono")
     tasa_dia = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Tasa del Día")
     modalidad_pago_restante = models.CharField(max_length=50, choices=MODALIDAD_PAGO_CHOICES, default='un_abono', verbose_name="Modalidad Pago Restante")
 
     abono_extra = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Abono Extra")
+    fecha_abono_extra = models.DateField(null=True, blank=True, verbose_name="Fecha del Abono Extra")
     forma_pago_abono_extra = models.CharField(max_length=50, choices=FORMA_PAGO_CHOICES, default='efectivo', verbose_name="Forma de Pago del Abono Extra")
     tasa_dia_abono_extra = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Tasa del Día (Abono Extra)")
     observacion_abono_extra = models.TextField(blank=True, null=True, verbose_name="Observación del Abono Extra")
@@ -99,7 +101,7 @@ class Entrada(models.Model):
     def total(self):
         # Sumar todos los repuestos y servicios asociados a esta entrada
         total_repuestos = sum(r.valor for r in self.repuestos.all())
-        total_servicios = sum(s.valor for s in self.servicios.all())
+        total_servicios = sum(s.valor * s.cantidad for s in self.servicios.all())
         return total_repuestos + total_servicios
 
     @property
@@ -125,10 +127,11 @@ class Salida(models.Model):
     ]
 
     entrada = models.OneToOneField(Entrada, on_delete=models.CASCADE, related_name='salida_rel', verbose_name="Entrada Asociada")
-    fecha_entrega = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Entrega")
+    fecha_entrega = models.DateField(null=True, blank=True, verbose_name="Fecha de Entrega")
     pago_final = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Pago Final Realizado")
     forma_pago_salida = models.CharField(max_length=50, choices=FORMA_PAGO_CHOICES, default='efectivo', verbose_name="Forma de Pago")
     tasa_dia_salida = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Tasa del Día")
+    observacion_pago_final = models.TextField(blank=True, null=True, verbose_name="Observación del Pago Final")
     observaciones_entrega = models.TextField(blank=True, verbose_name="Observaciones de Entrega")
     garantia = models.TextField(blank=True, verbose_name="Garantía")
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Entregado por")
@@ -163,6 +166,7 @@ class Maquina(models.Model):
 class Repuesto(models.Model):
     entrada = models.ForeignKey(Entrada, on_delete=models.CASCADE, related_name='repuestos', verbose_name="Entrada Asociada")
     nombre = models.CharField(max_length=150, verbose_name="Nombre del Repuesto")
+    cantidad = models.PositiveIntegerField(default=1, verbose_name="Cantidad")
     valor = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Valor")
 
     def __str__(self):
@@ -175,6 +179,7 @@ class Repuesto(models.Model):
 class Servicio(models.Model):
     entrada = models.ForeignKey(Entrada, on_delete=models.CASCADE, related_name='servicios', verbose_name="Entrada Asociada")
     nombre = models.CharField(max_length=150, verbose_name="Nombre del Servicio")
+    cantidad = models.PositiveIntegerField(default=1, verbose_name="Cantidad")
     valor = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Valor")
 
     def __str__(self):

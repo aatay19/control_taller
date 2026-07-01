@@ -57,7 +57,7 @@
                 <tbody>
                     {% for salida in salidas %}
                     <tr>
-                        <td>{{ salida.fecha_entrega|date:"d/m/Y H:i" }}</td>
+                        <td>{{ salida.fecha_entrega|date:"d/m/Y" }}</td>
                         <td>{{ salida.entrada.cliente.nombre }}</td>
                         <td>
                             {% for m in salida.entrada.maquinas.all %}
@@ -129,7 +129,7 @@
 <script type="application/json" id="salida-data-{{ salida.id }}">
 {
     "id": {{ salida.id }},
-    "fecha_entrega": "{{ salida.fecha_entrega|date:'d/m/Y H:i' }}",
+    "fecha_entrega": "{{ salida.fecha_entrega|date:'d/m/Y' }}",
     "cliente_nombre": "{{ salida.entrada.cliente.nombre }}",
     "cliente_cedula": "{{ salida.entrada.cliente.cedula }}",
     "cliente_telefono": "{{ salida.entrada.cliente.telefono|default:'-' }}",
